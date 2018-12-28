@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 "html2text" = "*"
+aiogram = "*"
+prettyconf = "*"
+belogging = "*"
 
 [dev-packages]
 ipdb = "*"
