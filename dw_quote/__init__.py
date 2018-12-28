@@ -1,0 +1,2 @@
+import belogging
+belogging.load()
