@@ -18,8 +18,8 @@ def parse_file(file_path):
             if 'announcer' in line.lower():
                 continue
 
-            if 'Airdate' in line:
-                airdate = line.split(': ')[1]
+            if 'Airdate: ' in line:
+                airdate = line.split(': ')[1].strip()
                 continue
 
             if not episode_title and '**' in line:
