@@ -48,6 +48,7 @@ def parse_all(path):
     return lines_data
 
 
-lines_data = parse_all(RAW_PATH)
-with open('./data.json', 'w') as json_data:
-    json_data.write(json.dumps(lines_data, indent=2))
+if __name__ == '__main__':
+    lines_data = parse_all(RAW_PATH)
+    with open('./data_.json', 'w') as json_data:
+        json_data.write(json.dumps(lines_data, indent=2))
