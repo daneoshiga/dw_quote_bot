@@ -19,6 +19,7 @@ for quote in quotes:
     if quote['line'].startswith('DOCTOR'):
         doctor_quotes.append(quote)
 
+
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
     await message.reply(
