@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=config("BOT_TOKEN"))
 dp = Dispatcher(bot)
 
-with open("data.csv") as quotes_file:
+with open("data.csv", newline="") as quotes_file:
     fieldnames = ["episode_title", "airdate", "line"]
     quotes = [q for q in csv.DictReader(quotes_file, fieldnames)]
     doctor_quotes = [q for q in quotes if q["line"].startswith("DOCTOR")]
