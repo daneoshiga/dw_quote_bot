@@ -1,4 +1,4 @@
-import json
+import csv
 from pathlib import Path
 
 import html2text
@@ -59,5 +59,8 @@ def parse_all(path):
 
 if __name__ == "__main__":
     lines_data = parse_all(RAW_PATH)
-    with open("./data.json", "w", encoding="utf-8") as json_data:
-        json_data.write(json.dumps(lines_data, indent=2))
+    with open("./data.csv", "w", encoding="utf-8") as csvfile:
+        fieldnames = ["episode_title", "airdate", "line"]
+        writer = csv.DictWriter(csvfile, fieldnames)
+        for quote in lines_data:
+            writer.writerow(quote)

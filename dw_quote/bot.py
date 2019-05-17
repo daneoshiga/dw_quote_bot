@@ -1,4 +1,4 @@
-import json
+import csv
 import logging
 import random
 
@@ -10,14 +10,10 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=config("BOT_TOKEN"))
 dp = Dispatcher(bot)
 
-with open("data.json") as quotes_file:
-    quotes = json.load(quotes_file)
-
-doctor_quotes = []
-
-for quote in quotes:
-    if quote["line"].startswith("DOCTOR"):
-        doctor_quotes.append(quote)
+with open("data.csv") as quotes_file:
+    fieldnames = ["episode_title", "airdate", "line"]
+    quotes = [q for q in csv.DictReader(quotes_file, fieldnames)]
+    doctor_quotes = [q for q in quotes if q["line"].startswith("DOCTOR")]
 
 
 @dp.message_handler(commands=["start", "help"])
