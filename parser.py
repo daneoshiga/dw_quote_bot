@@ -61,6 +61,6 @@ if __name__ == "__main__":
     lines_data = parse_all(RAW_PATH)
     with open("./data.csv", "w", encoding="utf-8", newline="") as csvfile:
         fieldnames = ["episode_title", "airdate", "line"]
-        writer = csv.DictWriter(csvfile, fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames, dialect="unix")
         for quote in lines_data:
             writer.writerow(quote)
