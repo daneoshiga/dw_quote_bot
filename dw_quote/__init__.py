@@ -1,2 +1,3 @@
 import belogging
+
 belogging.load()
