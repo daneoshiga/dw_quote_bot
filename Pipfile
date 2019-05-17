@@ -4,10 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"html2text" = "*"
 aiogram = "*"
-prettyconf = "*"
 belogging = "*"
+chardet = "*"
+html2text = "*"
+prettyconf = "*"
 
 [dev-packages]
 ipdb = "*"
