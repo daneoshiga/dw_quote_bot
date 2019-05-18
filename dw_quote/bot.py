@@ -14,9 +14,9 @@ dp = Dispatcher(bot)
 with open("data.csv", newline="") as quotes_file:
     quotes = defaultdict(list)
     fieldnames = ["episode_title", "airdate", "line"]
-    quotes["Any Character"] = [q for q in csv.DictReader(quotes_file, fieldnames)]
+    quotes["Any Name"] = [q for q in csv.DictReader(quotes_file, fieldnames)]
 
-    for quote in quotes["Any Character"]:
+    for quote in quotes["Any Name"]:
         name = quote["line"]
         stop_strings = [":", "(", "["]
         stop_strings.extend([str(n) for n in range(0, 10)])
@@ -44,16 +44,16 @@ async def return_quote(chat_id, quotes):
 
 
 @dp.inline_handler()
-async def search_by_character(inline_query: types.InlineQuery):
+async def search_by_name(inline_query: types.InlineQuery):
     logger.info("inline_query, query=%s", inline_query.query)
     results = []
-    characters = []
-    for character in quotes.keys():
-        if inline_query.query and character.startswith(inline_query.query.upper()):
-            characters.append(character)
-    characters = sorted(characters) if characters else ["Any Character"]
+    names = []
+    for name in quotes.keys():
+        if inline_query.query and name.startswith(inline_query.query.upper()):
+            names.append(name)
+    names = sorted(names) if names else ["Any Name"]
 
-    for index, char in enumerate(characters[:50], start=1):
+    for index, char in enumerate(names[:50], start=1):
         message = format_quote(random.choice(quotes[char]))
         content = types.InputTextMessageContent(
             message, parse_mode=types.ParseMode.MARKDOWN
@@ -78,7 +78,7 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(commands=["quote"])
 async def quote(message: types.Message):
     logger.info("quote, %s", message)
-    await return_quote(message.chat.id, quotes["Any Character"])
+    await return_quote(message.chat.id, quotes["Any Name"])
 
 
 @dp.message_handler(commands=["doctor_quote"])
