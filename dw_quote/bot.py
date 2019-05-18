@@ -1,6 +1,7 @@
 import csv
 import logging
 import random
+from collections import defaultdict
 
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
@@ -11,9 +12,58 @@ bot = Bot(token=config("BOT_TOKEN"))
 dp = Dispatcher(bot)
 
 with open("data.csv", newline="") as quotes_file:
+    quotes = defaultdict(list)
     fieldnames = ["episode_title", "airdate", "line"]
-    quotes = [q for q in csv.DictReader(quotes_file, fieldnames)]
-    doctor_quotes = [q for q in quotes if q["line"].startswith("DOCTOR")]
+    quotes["Any Character"] = [q for q in csv.DictReader(quotes_file, fieldnames)]
+
+    for quote in quotes["Any Character"]:
+        name = quote["line"]
+        stop_strings = [":", "(", "["]
+        stop_strings.extend([str(n) for n in range(0, 10)])
+
+        for string in stop_strings:
+            name = name.split(string)[0]
+        if name.startswith("DOCTOR"):
+            name = "DOCTOR"
+        quotes[name.strip()].append(quote)
+
+
+def format_quote(quote):
+    response = "{}\n*{}*".format(quote["line"], quote["episode_title"])
+    if quote["airdate"]:
+        response += " | _{}_".format(quote["airdate"])
+    return response
+
+
+async def return_quote(chat_id, quotes):
+    quote = random.choice(quotes)
+    logger.info("return_quote, quote=%r", quote)
+    response = format_quote(quote)
+
+    await bot.send_message(chat_id, response, parse_mode=types.ParseMode.MARKDOWN)
+
+
+@dp.inline_handler()
+async def search_by_character(inline_query: types.InlineQuery):
+    logger.info("inline_query, query=%s", inline_query.query)
+    results = []
+    characters = []
+    for character in quotes.keys():
+        if character.startswith(inline_query.query.upper()):
+            characters.append(character)
+    characters = sorted(characters) if characters else ["Any Character"]
+
+    for index, char in enumerate(characters[:50], start=1):
+        message = format_quote(random.choice(quotes[char]))
+        content = types.InputTextMessageContent(
+            message, parse_mode=types.ParseMode.MARKDOWN
+        )
+        results.append(
+            types.InlineQueryResultArticle(
+                id=index, title=char.title(), input_message_content=content
+            )
+        )
+    await bot.answer_inline_query(inline_query.id, results=results, cache_time=1)
 
 
 @dp.message_handler(commands=["start", "help"])
@@ -25,23 +75,13 @@ async def send_welcome(message: types.Message):
     )
 
 
-async def return_quote(chat_id, quotes):
-    quote = random.choice(quotes)
-    logger.info("return_quote, %r", quote)
-    response = "{}\n*{}*".format(quote["line"], quote["episode_title"])
-    if quote["airdate"]:
-        response += " | _{}_".format(quote["airdate"])
-
-    await bot.send_message(chat_id, response, parse_mode=types.ParseMode.MARKDOWN)
-
-
 @dp.message_handler(commands=["quote"])
 async def quote(message: types.Message):
-    logger.info("message, %s", message)
-    await return_quote(message.chat.id, quotes)
+    logger.info("quote, %s", message)
+    await return_quote(message.chat.id, quotes["Any Character"])
 
 
 @dp.message_handler(commands=["doctor_quote"])
 async def doctor_quote(message: types.Message):
     logger.info("doctor_quote, %s", message)
-    await return_quote(message.chat.id, doctor_quotes)
+    await return_quote(message.chat.id, quotes["DOCTOR"])

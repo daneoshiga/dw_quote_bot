@@ -44,7 +44,6 @@ def parse_file(file_path):
 
 
 def parse_all(path):
-
     lines_data = []
     for file_path in path.glob("**/*.htm*"):
         print(file_path)
