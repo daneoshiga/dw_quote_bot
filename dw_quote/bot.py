@@ -49,7 +49,7 @@ async def search_by_character(inline_query: types.InlineQuery):
     results = []
     characters = []
     for character in quotes.keys():
-        if character.startswith(inline_query.query.upper()):
+        if inline_query.query and character.startswith(inline_query.query.upper()):
             characters.append(character)
     characters = sorted(characters) if characters else ["Any Character"]
 
