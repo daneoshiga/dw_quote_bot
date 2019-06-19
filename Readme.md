@@ -1,16 +1,13 @@
-Doctor Who Quote Bot
-====================
+# Doctor Who Quote Bot
 
-Doctor Who random quotes bot
+[@dw_quote_bot](https://t.me/@dw_quote_bot)
 
+Bot that replies random quotes from Doctor Who
 
-Update raw data
----------------
+## Commands
 
-wget -m http://www.chakoteya.net/DoctorWho/
+*/quote* Returns any quote
 
+*/doctor_quote* Returns any Doctor quote
 
-Manual Fixes
-------------
-
-There's one DOCTRO and one DOCTO typos.
+*inline (@dw_quote_bot ...)* Makes it possible to filter by character name
