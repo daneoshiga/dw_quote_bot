@@ -1,4 +1,0 @@
-user-agent: *
-Disallow: /ZeroRoom/
-Disallow: /images/
-Disallow: /aspnet_client/
