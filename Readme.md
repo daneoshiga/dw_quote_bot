@@ -6,8 +6,8 @@ Bot that replies random quotes from Doctor Who
 
 ## Commands
 
-*/quote* Returns any quote
+**/quote** Returns any quote
 
-*/doctor_quote* Returns any Doctor quote
+**/doctor_quote** Returns any Doctor quote
 
-*inline (@dw_quote_bot ...)* Makes it possible to filter by character name
+**inline (@dw_quote_bot ...)** Makes it possible to filter by character name
