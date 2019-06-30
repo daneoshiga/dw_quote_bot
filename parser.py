@@ -6,8 +6,6 @@ from chardet.universaldetector import UniversalDetector
 
 RAW_PATH = Path("raw_data/www.chakoteya.net/DoctorWho/")
 
-test_html_file = RAW_PATH / "DoctorWho/37-10.html"
-
 detector = UniversalDetector()
 
 
