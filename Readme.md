@@ -4,6 +4,8 @@
 
 Bot that replies random quotes from Doctor Who
 
+Quotes from: http://www.chakoteya.net/
+
 ## Commands
 
 **/quote** Returns any quote
