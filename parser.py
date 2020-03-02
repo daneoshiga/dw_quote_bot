@@ -4,7 +4,7 @@ from pathlib import Path
 import html2text
 from chardet.universaldetector import UniversalDetector
 
-RAW_PATH = Path("raw_data/www.chakoteya.net/DoctorWho/")
+RAW_PATH = Path("raw_data/www.chakoteya.net/")
 
 detector = UniversalDetector()
 
