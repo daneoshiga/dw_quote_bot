@@ -1,0 +1,5 @@
+aiogram
+belogging
+bottle
+pydantic[dotenv]
+sentry-sdk[bottle]
