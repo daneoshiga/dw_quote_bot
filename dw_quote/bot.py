@@ -5,10 +5,11 @@ from collections import defaultdict
 
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
-from prettyconf import config
+
+from .settings import settings
 
 logger = logging.getLogger(__name__)
-bot = Bot(token=config("BOT_TOKEN"))
+bot = Bot(token=settings.bot_token)
 dp = Dispatcher(bot)
 
 with open("data.csv", newline="") as quotes_file:
