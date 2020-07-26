@@ -9,7 +9,7 @@ from aiogram.dispatcher import Dispatcher
 from .settings import settings
 
 logger = logging.getLogger(__name__)
-bot = Bot(token=settings.bot_token)
+bot = Bot(token=settings.BOT_TOKEN)
 dp = Dispatcher(bot)
 
 with open("data.csv", newline="") as quotes_file:

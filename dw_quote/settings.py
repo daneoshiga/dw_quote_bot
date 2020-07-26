@@ -2,7 +2,9 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    bot_token: str
+    BOT_TOKEN: str
+    SENTRY_DSN: str = ''
+    WEBHOOK_URL: str
 
     class Config:
         env_file = '.env'
