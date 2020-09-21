@@ -4,10 +4,10 @@
 #
 #    pip-compile --output-file=requirements/prod.txt requirements/prod.in
 #
-aiogram==2.9.2            # via -r requirements/prod.in
+aiogram==2.10.1           # via -r requirements/prod.in
 aiohttp==3.6.2            # via aiogram
 async-timeout==3.0.1      # via aiohttp
-attrs==19.3.0             # via aiohttp
+attrs==20.2.0             # via aiohttp
 babel==2.8.0              # via aiogram
 belogging==0.1.3          # via -r requirements/prod.in
 bottle==0.12.18           # via -r requirements/prod.in, sentry-sdk
@@ -19,7 +19,6 @@ pydantic[dotenv]==1.6.1   # via -r requirements/prod.in
 python-dotenv==0.14.0     # via pydantic
 python-json-logger==0.1.11  # via belogging
 pytz==2020.1              # via babel
-sentry-sdk[bottle]==0.16.2  # via -r requirements/prod.in
-typing-extensions==3.7.4.2  # via yarl
+sentry-sdk[bottle]==0.17.6  # via -r requirements/prod.in
 urllib3==1.25.10          # via sentry-sdk
-yarl==1.5.0               # via aiohttp
+yarl==1.5.1               # via aiohttp
