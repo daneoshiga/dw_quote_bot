@@ -6,7 +6,7 @@ import logging
 import sentry_sdk
 from aiogram import types
 from aiogram.dispatcher.webhook import BaseResponse, _check_ip
-from bottle import Bottle, abort, request
+from bottle import Bottle, abort, hook, request
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.bottle import BottleIntegration
 
@@ -86,7 +86,7 @@ async def process_update(dispatcher, update):
     :return:
     """
     dispatcher = get_dispatcher(app)
-    loop = dispatcher.loop
+    loop = dispatcher.loop or asyncio.get_event_loop()
 
     # Analog of `asyncio.wait_for` but without cancelling task
     waiter = loop.create_future()
@@ -115,7 +115,7 @@ async def process_update(dispatcher, update):
 
 
 def sync_process_update(dispatcher, update):
-    loop = dispatcher.loop
+    loop = dispatcher.loop or asyncio.get_event_loop()
     return loop.run_until_complete(process_update(dispatcher, update))
 
 
@@ -160,7 +160,7 @@ def set_webhook(key, value):
         return
 
     dispatcher = value
-    loop = dispatcher.loop
+    loop = dispatcher.loop or asyncio.get_event_loop()
 
     result = loop.run_until_complete(dispatcher.bot.set_webhook(settings.WEBHOOK_URL))
     logger.info("set_webhook_result=%s", result)
