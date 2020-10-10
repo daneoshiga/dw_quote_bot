@@ -6,7 +6,9 @@ import logging
 import sentry_sdk
 from aiogram import types
 from aiogram.dispatcher.webhook import BaseResponse, _check_ip
-from bottle import Bottle, abort, hook, request
+from aiogram.utils.deprecated import warn_deprecated as warn
+from aiogram.utils.exceptions import TimeoutWarning
+from bottle import Bottle, abort, request
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.bottle import BottleIntegration
 
@@ -110,8 +112,38 @@ async def process_update(dispatcher, update):
             return fut.result()
         else:
             fut.remove_done_callback(cb)
+            fut.add_done_callback(respond_via_request)
     finally:
         timeout_handle.cancel()
+
+
+def respond_via_request(self, task):
+    """
+    Handle response after 55 second.
+
+    :param task:
+    :return:
+    """
+    warn(
+        f"Detected slow response into webhook. "
+        f"(Greater than {RESPONSE_TIMEOUT} seconds)\n"
+        f"Recommended to use 'async_task' decorator from Dispatcher for handler with long timeouts.",
+        TimeoutWarning,
+    )
+
+    dispatcher = get_dispatcher(app)
+    loop = dispatcher.loop or asyncio.get_event_loop()
+
+    try:
+        results = task.result()
+    except Exception as e:
+        loop.create_task(
+            dispatcher.errors_handlers.notify(dispatcher, types.Update.get_current(), e)
+        )
+    else:
+        response = self.get_response(results)
+        if response is not None:
+            asyncio.ensure_future(response.execute_response(dispatcher.bot), loop=loop)
 
 
 def sync_process_update(dispatcher, update):
