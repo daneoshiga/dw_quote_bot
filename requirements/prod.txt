@@ -15,7 +15,7 @@ certifi==2020.6.20        # via aiogram, sentry-sdk
 chardet==3.0.4            # via aiohttp
 idna==2.10                # via yarl
 multidict==4.7.6          # via aiohttp, yarl
-pydantic[dotenv]==1.6.1   # via -r requirements/prod.in
+pydantic[dotenv]==1.7.3   # via -r requirements/prod.in
 python-dotenv==0.14.0     # via pydantic
 python-json-logger==0.1.11  # via belogging
 pytz==2020.1              # via babel
