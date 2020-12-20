@@ -19,6 +19,6 @@ pydantic[dotenv]==1.6.1   # via -r requirements/prod.in
 python-dotenv==0.14.0     # via pydantic
 python-json-logger==0.1.11  # via belogging
 pytz==2020.1              # via babel
-sentry-sdk[bottle]==0.17.6  # via -r requirements/prod.in
+sentry-sdk[bottle]==0.19.5  # via -r requirements/prod.in
 urllib3==1.25.10          # via sentry-sdk
 yarl==1.5.1               # via aiohttp
