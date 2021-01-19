@@ -5,11 +5,21 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
+.PHONY: lint upgrade-deps clean check
+
 lint:
 	pre-commit run -a -v
 
-upgrade-deps:
-	pip-compile --upgrade requirements/prod.in --output-file requirements/prod.txt
-	pip-compile --upgrade requirements/parse.in --output-file requirements/parse.txt
+objects = $(wildcard requirements/*.in)
+outputs := $(objects:.in=.txt)
 
-.PHONY: lint upgrade
+requirements: $(outputs)
+
+%.txt: %.in
+	pip-compile -v --output-file $@ $<
+
+check:
+	@which pip-compile > /dev/null
+
+clean: check
+	- rm requirements/*.txt

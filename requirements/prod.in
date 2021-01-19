@@ -1,5 +1,7 @@
 aiogram
+aiohttp[speedups]
 belogging
 bottle
 pydantic[dotenv]
 sentry-sdk[bottle]
+uvloop
