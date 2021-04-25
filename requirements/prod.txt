@@ -4,29 +4,67 @@
 #
 #    pip-compile --output-file=requirements/prod.txt requirements/prod.in
 #
-aiodns==2.0.0             # via aiohttp
-aiogram==2.11.2           # via -r requirements/prod.in
-aiohttp[speedups]==3.7.3  # via -r requirements/prod.in, aiogram
-async-timeout==3.0.1      # via aiohttp
-attrs==20.3.0             # via aiohttp
-babel==2.9.0              # via aiogram
-belogging==0.1.3          # via -r requirements/prod.in
-bottle==0.12.19           # via -r requirements/prod.in, sentry-sdk
-brotlipy==0.7.0           # via aiohttp
-cchardet==2.1.7           # via aiohttp
-certifi==2020.12.5        # via aiogram, sentry-sdk
-cffi==1.14.4              # via brotlipy, pycares
-chardet==3.0.4            # via aiohttp
-idna==3.1                 # via yarl
-multidict==5.1.0          # via aiohttp, yarl
-pycares==3.1.1            # via aiodns
-pycparser==2.20           # via cffi
-pydantic[dotenv]==1.7.3   # via -r requirements/prod.in
-python-dotenv==0.15.0     # via pydantic
-python-json-logger==2.0.1  # via belogging
-pytz==2020.5              # via babel
-sentry-sdk[bottle]==0.19.5  # via -r requirements/prod.in
-typing-extensions==3.7.4.3  # via aiohttp
-urllib3==1.26.2           # via sentry-sdk
-uvloop==0.14.0            # via -r requirements/prod.in
-yarl==1.6.3               # via aiohttp
+aiodns==2.0.0
+    # via aiohttp
+aiogram==2.12.1
+    # via -r requirements/prod.in
+aiohttp[speedups]==3.7.4.post0
+    # via
+    #   -r requirements/prod.in
+    #   aiogram
+async-timeout==3.0.1
+    # via aiohttp
+attrs==20.3.0
+    # via aiohttp
+babel==2.9.0
+    # via aiogram
+belogging==0.1.3
+    # via -r requirements/prod.in
+bottle==0.12.19
+    # via
+    #   -r requirements/prod.in
+    #   sentry-sdk
+brotlipy==0.7.0
+    # via aiohttp
+cchardet==2.1.7
+    # via aiohttp
+certifi==2020.12.5
+    # via
+    #   aiogram
+    #   sentry-sdk
+cffi==1.14.5
+    # via
+    #   brotlipy
+    #   pycares
+chardet==4.0.0
+    # via aiohttp
+idna==3.1
+    # via yarl
+multidict==5.1.0
+    # via
+    #   aiohttp
+    #   yarl
+pycares==3.1.1
+    # via aiodns
+pycparser==2.20
+    # via cffi
+pydantic[dotenv]==1.8.1
+    # via -r requirements/prod.in
+python-dotenv==0.17.0
+    # via pydantic
+python-json-logger==2.0.1
+    # via belogging
+pytz==2021.1
+    # via babel
+sentry-sdk[bottle]==1.0.0
+    # via -r requirements/prod.in
+typing-extensions==3.7.4.3
+    # via
+    #   aiohttp
+    #   pydantic
+urllib3==1.26.4
+    # via sentry-sdk
+uvloop==0.15.2
+    # via -r requirements/prod.in
+yarl==1.6.3
+    # via aiohttp
