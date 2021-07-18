@@ -9,5 +9,4 @@ if sys.executable != INTERP:
 from dw_quote.bot import dp  # noqa
 from dw_quote.web import app as application  # noqa
 
-
 application.config["dispatcher"] = dp

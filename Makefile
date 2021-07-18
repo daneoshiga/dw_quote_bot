@@ -18,6 +18,9 @@ requirements: $(outputs)
 %.txt: %.in
 	pip-compile -v --output-file $@ $<
 
+upgrade-deps: clean requirements
+	pip-sync $(outputs)
+
 check:
 	@which pip-compile > /dev/null
 
