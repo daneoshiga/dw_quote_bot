@@ -172,7 +172,14 @@ def webhook():
     update = parse_update()
 
     dispatcher = get_dispatcher(app)
-    results = sync_process_update(dispatcher, update)
+
+    # Don't bubble up exceptions outside this app to avoid strange passenger issues
+    try:
+        results = sync_process_update(dispatcher, update)
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
+        results = None
+
     response = get_response(results)
 
     if response:
