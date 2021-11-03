@@ -64,7 +64,7 @@ async def search_by_name(inline_query: types.InlineQuery):
                 id=index, title=char.title(), input_message_content=content
             )
         )
-    await bot.answer_inline_query(inline_query.id, results=results)
+    await bot.answer_inline_query(inline_query.id, results=results, cache_time=1)
 
 
 @dp.message_handler(commands=["start", "help"])
