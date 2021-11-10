@@ -8,6 +8,8 @@ RAW_PATH = Path("raw_data/www.chakoteya.net/")
 
 detector = UniversalDetector()
 
+IGNORED_LINES = ("announcer", "next chapter")
+
 
 def parse_file(file_path):
     detector.reset()
@@ -25,7 +27,7 @@ def parse_file(file_path):
         h = html2text.HTML2Text(bodywidth=0)
         result = h.handle(episode_file.read())
         for num, line in enumerate(result.split("\n")):
-            if "announcer" in line.lower():
+            if any(ignored in line.lower() for ignored in IGNORED_LINES):
                 continue
 
             if "Airdate: " in line:
@@ -34,6 +36,7 @@ def parse_file(file_path):
 
             if not episode_title and "**" in line:
                 episode_title = line.split("**")[1]
+                continue
 
             if ": " in line:
                 lines.append(line.strip())
