@@ -1,0 +1,4 @@
+-c prod.in
+-c parse.in
+ipdb
+watchdog[watchmedo]

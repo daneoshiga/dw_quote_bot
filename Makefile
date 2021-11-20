@@ -5,7 +5,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-.PHONY: lint upgrade-deps clean check
+.PHONY: lint upgrade-deps clean check dev
 
 lint:
 	pre-commit run -a -v
@@ -26,3 +26,6 @@ check:
 
 clean: check
 	- rm requirements/*.txt
+
+dev:
+	watchmedo auto-restart -d . -p "*.py" --recursive -- python -m dw_quote
