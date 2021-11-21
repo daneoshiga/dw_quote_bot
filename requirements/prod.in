@@ -5,3 +5,4 @@ bottle
 pydantic[dotenv]
 sentry-sdk[bottle]
 uvloop
+emoji

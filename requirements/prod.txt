@@ -39,6 +39,8 @@ cffi==1.15.0
     # via pycares
 charset-normalizer==2.0.7
     # via aiohttp
+emoji==1.6.1
+    # via -r requirements/prod.in
 frozenlist==1.2.0
     # via
     #   aiohttp
