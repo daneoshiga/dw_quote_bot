@@ -62,7 +62,6 @@ def keyboard_factory(query_type="inline", inline_query="", char_name="Any Name")
     search_button = types.InlineKeyboardButton(
         text=emojize(f":mag_right: {search_text}"),
         switch_inline_query_current_chat=inline_query,
-        selective=True,
     )
 
     refresh = types.InlineKeyboardButton(
@@ -70,7 +69,6 @@ def keyboard_factory(query_type="inline", inline_query="", char_name="Any Name")
         callback_data=quote_cb.new(
             query_type=query_type, inline_query=inline_query, char_name=char_name
         ),
-        selective=True,
     )
 
     keyboard_markup.row(search_button, refresh)
