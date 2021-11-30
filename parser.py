@@ -8,7 +8,7 @@ RAW_PATH = Path("raw_data/www.chakoteya.net/")
 
 detector = UniversalDetector()
 
-IGNORED_LINES = ("announcer", "next chapter")
+IGNORED_LINES = ("announcer", "chapter:")
 
 
 def parse_file(file_path):
