@@ -188,7 +188,7 @@ def webhook():
         return "ok"
 
     if request.headers.get("RETRY_AFTER", None):
-        web_response.headers["Retry-After"] = request.headers["RETRY_AFTER"]
+        web_response.headers["Retry-After"] = str(request.headers["RETRY_AFTER"])
 
     return web_response
 
