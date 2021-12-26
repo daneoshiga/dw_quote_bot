@@ -12,4 +12,7 @@ Quotes from: http://www.chakoteya.net/
 
 **/doctor_quote** Returns any Doctor quote
 
-**inline (@dw_quote_bot ...)** Makes it possible to filter by character name
+**inline (@dw_quote_bot character name)** Makes it possible to filter by character name
+
+All results will have two buttons, one for searching again to get a new quote as a new message, and another to refresh
+the current message with a new quote.
