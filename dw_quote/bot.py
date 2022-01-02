@@ -86,7 +86,7 @@ async def search_by_name(inline_query: types.InlineQuery):
         content = types.InputTextMessageContent(
             message, parse_mode=types.ParseMode.MARKDOWN
         )
-        keyboard = inline_keyboard_factory(inline_query=inline_query.query, name=name)
+        keyboard = inline_keyboard_factory(inline_query=query, name=name)
 
         results.append(
             types.InlineQueryResultArticle(
