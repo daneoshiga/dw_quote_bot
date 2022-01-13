@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class Quotes:
     quotes = defaultdict(list)
 
-    def __init__(self, quotes_filename="data.csv"):
+    def __init__(self):
         with open("data.csv", newline="") as quotes_file:
             fieldnames = ["episode_title", "airdate", "line"]
             self.quotes[ANY_NAME] = [q for q in csv.DictReader(quotes_file, fieldnames)]
