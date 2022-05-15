@@ -1,6 +1,6 @@
 repos:
 - repo: git@github.com:pre-commit/pre-commit-hooks
-  rev: v4.0.1
+  rev: v4.2.0
   hooks:
   - id: debug-statements
   - id: trailing-whitespace
@@ -17,6 +17,12 @@ repos:
   - id: forbid-new-submodules
     args: ['--exclude=docs/*,*migrations*', '--ignore=E501']
 
+- repo: https://github.com/asottile/pyupgrade
+  rev: v2.32.1
+  hooks:
+    - id: pyupgrade
+      args: [ '--py310-plus' ]
+
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.9.2
   hooks:
@@ -25,12 +31,12 @@ repos:
     language_version: python3
 
 - repo: https://github.com/pre-commit/mirrors-isort
-  rev: v5.9.3
+  rev: v5.10.1
   hooks:
   - id: isort
 
 - repo: https://github.com/python/black
-  rev: 21.10b0
+  rev: 22.3.0
   hooks:
     - id: black
 
