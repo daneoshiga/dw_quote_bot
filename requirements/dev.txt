@@ -18,7 +18,7 @@ executing==0.8.3
     # via stack-data
 ipdb==0.13.9
     # via -r requirements/dev.in
-ipython==8.3.0
+ipython==8.4.0
     # via ipdb
 jedi==0.18.1
     # via ipython
@@ -46,7 +46,7 @@ stack-data==0.2.0
     # via ipython
 toml==0.10.2
     # via ipdb
-traitlets==5.2.0
+traitlets==5.2.2.post1
     # via
     #   ipython
     #   matplotlib-inline
