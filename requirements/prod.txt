@@ -6,7 +6,7 @@
 #
 aiodns==3.0.0
     # via aiohttp
-aiogram==2.20
+aiogram==2.21
     # via -r requirements/prod.in
 aiohttp[speedups]==3.8.1
     # via
@@ -30,13 +30,13 @@ brotli==1.0.9
     # via aiohttp
 cchardet==2.1.7
     # via aiohttp
-certifi==2022.5.18.1
+certifi==2022.6.15
     # via
     #   aiogram
     #   sentry-sdk
-cffi==1.15.0
+cffi==1.15.1
     # via pycares
-charset-normalizer==2.0.12
+charset-normalizer==2.1.0
     # via aiohttp
 emoji==1.7.0
     # via -r requirements/prod.in
@@ -50,7 +50,7 @@ multidict==6.0.2
     # via
     #   aiohttp
     #   yarl
-pycares==4.1.2
+pycares==4.2.1
     # via aiodns
 pycparser==2.21
     # via cffi
@@ -62,9 +62,9 @@ python-json-logger==2.0.2
     # via belogging
 pytz==2022.1
     # via babel
-sentry-sdk[bottle]==1.5.12
+sentry-sdk[bottle]==1.6.0
     # via -r requirements/prod.in
-typing-extensions==4.2.0
+typing-extensions==4.3.0
     # via pydantic
 urllib3==1.26.9
     # via sentry-sdk
