@@ -5,7 +5,7 @@ from functools import partial
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.callback_data import CallbackData
-from aiogram.utils.emoji import emojize
+from emoji import emojize
 from aiogram.utils.exceptions import MessageNotModified
 
 from . import ANY_NAME
@@ -37,7 +37,7 @@ def keyboard_factory(query_type, inline_query="", name=ANY_NAME):
     }
 
     search_button = types.InlineKeyboardButton(
-        text=emojize(f":mag_right: {search_text[query_type]}"),
+        text=emojize(f":mag_right: {search_text[query_type]}", language='alias'),
         switch_inline_query_current_chat=inline_query,
     )
 
@@ -47,7 +47,7 @@ def keyboard_factory(query_type, inline_query="", name=ANY_NAME):
         name=name,
     )
     refresh = types.InlineKeyboardButton(
-        text=emojize(":arrows_counterclockwise: Refresh"),
+        text=emojize(":arrows_counterclockwise: Refresh", language='alias'),
         callback_data=refresh_callback,
     )
 
