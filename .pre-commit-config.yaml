@@ -23,8 +23,8 @@ repos:
     - id: pyupgrade
       args: [ '--py310-plus' ]
 
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.9.2
+- repo: https://github.com/pycqa/flake8
+  rev: 5.0.4
   hooks:
   - id: flake8
     args: ['--exclude=docs/*,*migrations*', '--ignore=E501,W503,E203']
