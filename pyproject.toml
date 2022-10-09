@@ -1,2 +1,6 @@
 [tool.black]
 target-version = ['py38']
+
+[tool.vulture]
+min_confidence = 80
+paths = ["dw_quote"]
