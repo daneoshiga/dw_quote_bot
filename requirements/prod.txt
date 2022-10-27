@@ -58,9 +58,9 @@ python-dotenv==0.21.0
     # via pydantic
 python-json-logger==2.0.4
     # via belogging
-pytz==2022.4
+pytz==2022.5
     # via babel
-sentry-sdk[bottle]==1.9.10
+sentry-sdk[bottle]==1.10.1
     # via -r requirements/prod.in
 typing-extensions==4.4.0
     # via pydantic
