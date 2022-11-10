@@ -8,7 +8,7 @@ MAKEFLAGS += --no-builtin-rules
 .PHONY: lint upgrade-deps clean check dev
 
 lint:
-	pre-commit run -a -v
+	pre-commit run -a
 
 objects = $(wildcard requirements/*.in)
 outputs := $(objects:.in=.txt)
