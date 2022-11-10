@@ -1,7 +1,7 @@
 import asyncio
 import functools
-import itertools
 import logging
+from itertools import chain
 
 import sentry_sdk
 from aiogram import types
@@ -161,7 +161,7 @@ def get_response(results):
     """
     if results is None:
         return None
-    for result in itertools.chain.from_iterable(results):
+    for result in chain.from_iterable(results):
         if isinstance(result, BaseResponse):
             return result
 

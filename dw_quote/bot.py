@@ -4,6 +4,7 @@ from functools import partial
 
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
+from aiogram.types import InlineQueryResultArticle, InputTextMessageContent, ParseMode
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 from emoji import emojize
@@ -66,9 +67,7 @@ async def reply_with_quote(message, name):
     keyboard = command_keyboard_factory(name=name)
     response = quotes.quote(name)
 
-    await message.reply(
-        response, parse_mode=types.ParseMode.MARKDOWN, reply_markup=keyboard
-    )
+    await message.reply(response, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
 
 
 # Handlers
@@ -83,13 +82,11 @@ async def search_by_name(inline_query: types.InlineQuery):
 
     for index, name in enumerate(names, start=1):
         message = quotes.quote(name)
-        content = types.InputTextMessageContent(
-            message, parse_mode=types.ParseMode.MARKDOWN
-        )
+        content = InputTextMessageContent(message, parse_mode=ParseMode.MARKDOWN)
         keyboard = inline_keyboard_factory(inline_query=query, name=name)
 
         results.append(
-            types.InlineQueryResultArticle(
+            InlineQueryResultArticle(
                 id=index,
                 title=name.title(),
                 input_message_content=content,
@@ -112,7 +109,7 @@ async def inline_callback_handler(query, callback_data):
         await bot.edit_message_text(
             inline_message_id=query.inline_message_id,
             text=message_text,
-            parse_mode=types.ParseMode.MARKDOWN,
+            parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
         )
     except MessageNotModified:
@@ -130,7 +127,7 @@ async def command_callback_handler(query, callback_data):
     try:
         await query.message.edit_text(
             text=message_text,
-            parse_mode=types.ParseMode.MARKDOWN,
+            parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
         )
     except MessageNotModified:

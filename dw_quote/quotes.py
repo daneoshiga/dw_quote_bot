@@ -13,13 +13,14 @@ class Quotes:
 
     def __init__(self):
         with open("data.csv", newline="") as quotes_file:
-            fieldnames = ["episode_title", "airdate", "line"]
+            fieldnames = "episode_title", "airdate", "line"
             self.quotes[ANY_NAME] = [q for q in csv.DictReader(quotes_file, fieldnames)]
+
+            stop_strings = [":", "(", "["]
+            stop_strings.extend([str(n) for n in range(0, 10)])
 
             for quote in self.quotes[ANY_NAME]:
                 name = quote["line"]
-                stop_strings = [":", "(", "["]
-                stop_strings.extend([str(n) for n in range(0, 10)])
 
                 for string in stop_strings:
                     name = name.split(string)[0]
