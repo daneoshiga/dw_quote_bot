@@ -28,7 +28,9 @@ bottle==0.12.23
     #   sentry-sdk
 brotli==1.0.9
     # via aiohttp
-certifi==2022.9.24
+cchardet==2.1.7
+    # via aiohttp
+certifi==2022.12.7
     # via
     #   aiogram
     #   sentry-sdk
