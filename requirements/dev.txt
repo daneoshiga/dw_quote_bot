@@ -6,7 +6,7 @@
 #
 appnope==0.1.3
     # via ipython
-asttokens==2.1.0
+asttokens==2.2.1
     # via stack-data
 backcall==0.2.0
     # via ipython
@@ -16,11 +16,11 @@ decorator==5.1.1
     #   ipython
 executing==1.2.0
     # via stack-data
-ipdb==0.13.9
+ipdb==0.13.11
     # via -r requirements/dev.in
-ipython==8.6.0
+ipython==8.7.0
     # via ipdb
-jedi==0.18.1
+jedi==0.18.2
     # via ipython
 matplotlib-inline==0.1.6
     # via ipython
@@ -30,7 +30,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-prompt-toolkit==3.0.32
+prompt-toolkit==3.0.36
     # via ipython
 ptyprocess==0.7.0
     # via pexpect
@@ -42,18 +42,13 @@ pyyaml==6.0
     # via watchdog
 six==1.16.0
     # via asttokens
-stack-data==0.6.0
+stack-data==0.6.2
     # via ipython
-toml==0.10.2
-    # via ipdb
-traitlets==5.5.0
+traitlets==5.7.1
     # via
     #   ipython
     #   matplotlib-inline
-watchdog[watchmedo]==2.1.9
+watchdog[watchmedo]==2.2.0
     # via -r requirements/dev.in
 wcwidth==0.2.5
     # via prompt-toolkit
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools

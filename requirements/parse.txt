@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements/parse.txt requirements/parse.in
 #
-chardet==5.0.0
+chardet==5.1.0
     # via -r requirements/parse.in
 html2text==2020.1.16
     # via -r requirements/parse.in

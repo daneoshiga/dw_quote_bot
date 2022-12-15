@@ -28,7 +28,7 @@ bottle==0.12.23
     #   sentry-sdk
 brotli==1.0.9
     # via aiohttp
-certifi==2022.9.24
+certifi==2022.12.7
     # via
     #   aiogram
     #   sentry-sdk
@@ -46,11 +46,11 @@ idna==3.4
     # via yarl
 magic-filter==1.0.9
     # via aiogram
-multidict==6.0.2
+multidict==6.0.3
     # via
     #   aiohttp
     #   yarl
-pycares==4.2.2
+pycares==4.3.0
     # via aiodns
 pycparser==2.21
     # via cffi
@@ -62,13 +62,13 @@ python-json-logger==2.0.4
     # via belogging
 pytz==2022.6
     # via babel
-sentry-sdk[bottle]==1.10.1
+sentry-sdk[bottle]==1.11.1
     # via -r requirements/prod.in
 typing-extensions==4.4.0
     # via pydantic
-urllib3==1.26.12
+urllib3==1.26.13
     # via sentry-sdk
 uvloop==0.17.0
     # via -r requirements/prod.in
-yarl==1.8.1
+yarl==1.8.2
     # via aiohttp
