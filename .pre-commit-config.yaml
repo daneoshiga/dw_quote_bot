@@ -18,7 +18,7 @@ repos:
     args: ['--exclude=docs/*,*migrations*', '--ignore=E501']
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.3.1
+  rev: v3.3.2
   hooks:
     - id: pyupgrade
       args: [ '--py310-plus' ]
@@ -36,7 +36,7 @@ repos:
   - id: isort
 
 - repo: https://github.com/python/black
-  rev: 22.12.0
+  rev: 23.3.0
   hooks:
     - id: black
 
@@ -49,6 +49,6 @@ repos:
   - id: check-mutable-defaults
 
 - repo: https://github.com/jendrikseipp/vulture
-  rev: 'v2.6'
+  rev: 'v2.7'
   hooks:
     - id: vulture
