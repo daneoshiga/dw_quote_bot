@@ -29,9 +29,9 @@ class Quotes:
                 self.quotes[name.strip()].append(quote)
 
     def format_quote(self, quote):
-        response = "{}\n*{}*".format(quote["line"], quote["episode_title"])
+        response = "{}\n<b>{}</b>".format(quote["line"], quote["episode_title"])
         if quote["airdate"]:
-            response += " | _{}_".format(quote["airdate"])
+            response += " | <i>{}</i>".format(quote["airdate"])
         return response
 
     def names(self, search_name):
