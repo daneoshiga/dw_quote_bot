@@ -67,7 +67,7 @@ async def reply_with_quote(message, name):
     keyboard = command_keyboard_factory(name=name)
     response = quotes.quote(name)
 
-    await message.reply(response, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
+    await message.reply(response, parse_mode=ParseMode.HTML, reply_markup=keyboard)
 
 
 # Handlers
@@ -82,7 +82,7 @@ async def search_by_name(inline_query: types.InlineQuery):
 
     for index, name in enumerate(names, start=1):
         message = quotes.quote(name)
-        content = InputTextMessageContent(message, parse_mode=ParseMode.MARKDOWN)
+        content = InputTextMessageContent(message, parse_mode=ParseMode.HTML)
         keyboard = inline_keyboard_factory(inline_query=query, name=name)
 
         results.append(
@@ -109,7 +109,7 @@ async def inline_callback_handler(query, callback_data):
         await bot.edit_message_text(
             inline_message_id=query.inline_message_id,
             text=message_text,
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=ParseMode.HTML,
             reply_markup=keyboard,
         )
     except MessageNotModified:
@@ -127,7 +127,7 @@ async def command_callback_handler(query, callback_data):
     try:
         await query.message.edit_text(
             text=message_text,
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=ParseMode.HTML,
             reply_markup=keyboard,
         )
     except MessageNotModified:
