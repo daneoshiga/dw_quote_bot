@@ -1,8 +1,8 @@
-aiogram
+aiogram<3
 aiohttp[speedups]
 belogging
 bottle
 emoji
-pydantic[dotenv]
+pydantic-settings
 sentry-sdk[bottle]
 uvloop
