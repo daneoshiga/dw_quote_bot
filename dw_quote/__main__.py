@@ -1,6 +1,6 @@
-from aiogram.utils import executor
+import asyncio
 
-from .bot import dp
+from .bot import bot, dp
 
 if __name__ == "__main__":
-    executor.start_polling(dp)
+    asyncio.run(dp.start_polling(bot))
