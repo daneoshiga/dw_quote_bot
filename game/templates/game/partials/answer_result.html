@@ -1,0 +1,8 @@
+<div class="banner {% if correct %}ok{% else %}no{% endif %}">
+{% if correct %}
+<p>Correct. The episode is <strong>{{ episode_title }}</strong>.</p>
+{% else %}
+<p>Not this time. The answer was <strong>{{ episode_title }}</strong>.</p>
+{% endif %}
+</div>
+<p><a href="{% url 'daily_play' play_date %}">Open this day again</a></p>

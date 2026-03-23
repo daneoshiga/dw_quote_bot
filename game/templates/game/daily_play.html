@@ -1,0 +1,30 @@
+{% extends "game/base.html" %}
+{% block title %}Daily quote · {{ play_date }}{% endblock %}
+{% block body %}
+<h1>Daily quote</h1>
+<p class="meta"><time datetime="{{ play_date|date:'c' }}">{{ play_date }}</time> · <a href="{% url 'today_redirect' %}">Go to today</a> ({{ game_timezone }})</p>
+{% if prior_result %}
+<div class="banner {% if prior_result.correct %}ok{% else %}no{% endif %}">
+  You already played this day: {% if prior_result.correct %}correct{% else %}incorrect{% endif %}.
+</div>
+{% endif %}
+<blockquote>{{ quote.text }}</blockquote>
+<form
+  method="post"
+  action="{% url 'daily_answer' play_date %}"
+  hx-post="{% url 'daily_answer' play_date %}"
+  hx-target="#answer-slot"
+  hx-swap="innerHTML"
+>
+  {% csrf_token %}
+  <input type="hidden" name="quote_id" value="{{ quote.pk }}">
+  <fieldset>
+    <legend>Which episode?</legend>
+    {% for eid, title in choices %}
+    <label><input type="radio" name="episode_id" value="{{ eid }}" required> {{ title }}</label>
+    {% endfor %}
+  </fieldset>
+  <p><button type="submit">Submit answer</button></p>
+</form>
+<div id="answer-slot"></div>
+{% endblock %}

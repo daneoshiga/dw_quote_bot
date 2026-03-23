@@ -1,0 +1,7 @@
+{% extends "game/base.html" %}
+{% block title %}Unavailable · {{ play_date }}{% endblock %}
+{% block body %}
+<h1>No quotes loaded</h1>
+<p>There are no quotes in the database yet for <strong>{{ play_date }}</strong>.</p>
+<p>Run <code>python manage.py import_quotes</code> after migrating.</p>
+{% endblock %}
