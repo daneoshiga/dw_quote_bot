@@ -58,22 +58,52 @@ def resolve_quote_pk(
     raise LookupError("no existing quote pk found within attempt limit")
 
 
-def build_mcq_episode_ids(
-    correct_episode_id: int,
-    all_episode_ids: list[int],
-    k: int,
+RED = "🟥"
+GREEN = "🟩"
+BLACK = "⬛"
+
+
+def format_share_row(*, won: bool, wrong_count: int, max_attempts: int = 6) -> str:
+    """
+    Space-separated emoji row for sharing: wrong guesses, then green if won, then unused slots.
+
+    wrong_count: number of incorrect guesses. On a win, the successful guess is one green after those reds.
+    On a loss, wrong_count must equal max_attempts (all reds).
+    """
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1")
+    if won:
+        if not 0 <= wrong_count < max_attempts:
+            raise ValueError("wrong_count must be in [0, max_attempts) when won")
+        reds = wrong_count
+        greens = 1
+        blacks = max_attempts - wrong_count - 1
+    else:
+        if wrong_count != max_attempts:
+            raise ValueError("wrong_count must equal max_attempts when lost")
+        reds = max_attempts
+        greens = 0
+        blacks = 0
+    parts = [RED] * reds + [GREEN] * greens + [BLACK] * blacks
+    return " ".join(parts)
+
+
+def pick_next_quote_pk(
+    candidate_pks: list[int],
+    shown: set[int],
     rng: random.Random,
-) -> list[int]:
-    """Return shuffled list of (k distractors + correct), all distinct."""
-    wrong = [eid for eid in all_episode_ids if eid != correct_episode_id]
-    if len(wrong) < k:
-        raise ValueError("not enough episodes for distractors")
-    distractors = rng.sample(wrong, k)
-    options = distractors + [correct_episode_id]
-    rng.shuffle(options)
-    return options
+) -> int | None:
+    """Pick a quote pk from candidates not in shown; None if no unseen candidate."""
+    available = sorted(pk for pk in candidate_pks if pk not in shown)
+    if not available:
+        return None
+    return rng.choice(available)
 
 
-def mcq_rng_for_day(play_date: date, game_seed: str = "") -> random.Random:
-    """RNG branch used only for MCQ construction for this day."""
-    return rng_for_date(play_date, f"{game_seed}:mcq")
+def format_progress_row(*, wrong_count: int, max_attempts: int = 6) -> str:
+    """While playing: one red per wrong guess, black for remaining slots."""
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1")
+    if not 0 <= wrong_count <= max_attempts:
+        raise ValueError("wrong_count must be in [0, max_attempts]")
+    return " ".join([RED] * wrong_count + [BLACK] * (max_attempts - wrong_count))

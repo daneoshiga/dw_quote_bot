@@ -6,9 +6,10 @@ import pytest
 
 from game.game_logic import (
     InvalidGameDate,
-    build_mcq_episode_ids,
-    mcq_rng_for_day,
+    format_progress_row,
+    format_share_row,
     parse_game_date,
+    pick_next_quote_pk,
     quote_pk_for_day,
     resolve_quote_pk,
     rng_for_date,
@@ -95,27 +96,58 @@ def test_resolve_quote_pk_raises_when_impossible():
         resolve_quote_pk(d, 5, exists, max_attempts=3)
 
 
-def test_build_mcq_episode_ids_size_and_membership():
-    rng = rng_for_date(date(2019, 1, 1), "mcq-test")
-    pool = [10, 20, 30, 40]
-    out = build_mcq_episode_ids(30, pool, k=2, rng=rng)
-    assert len(out) == 3
-    assert len(set(out)) == 3
-    assert 30 in out
-    assert all(x in pool for x in out)
+@pytest.mark.parametrize(
+    ("won", "wrong_count", "expected"),
+    [
+        (True, 4, "🟥 🟥 🟥 🟥 🟩 ⬛"),
+        (True, 0, "🟩 ⬛ ⬛ ⬛ ⬛ ⬛"),
+        (True, 5, "🟥 🟥 🟥 🟥 🟥 🟩"),
+        (False, 6, "🟥 🟥 🟥 🟥 🟥 🟥"),
+    ],
+)
+def test_format_share_row(won, wrong_count, expected):
+    assert format_share_row(won=won, wrong_count=wrong_count) == expected
 
 
-def test_build_mcq_episode_ids_deterministic():
-    d = date(2018, 5, 5)
-    rng = mcq_rng_for_day(d, "")
-    pool = list(range(1, 50))
-    first = build_mcq_episode_ids(7, pool, k=3, rng=rng)
-    rng2 = mcq_rng_for_day(d, "")
-    second = build_mcq_episode_ids(7, pool, k=3, rng=rng2)
+def test_format_share_row_invalid_win_wrong_count():
+    with pytest.raises(ValueError, match="wrong_count"):
+        format_share_row(won=True, wrong_count=6)
+
+
+def test_format_share_row_invalid_loss_wrong_count():
+    with pytest.raises(ValueError, match="wrong_count"):
+        format_share_row(won=False, wrong_count=5)
+
+
+def test_pick_next_quote_pk_excludes_shown():
+    rng = rng_for_date(date(2020, 1, 1), "hint")
+    assert pick_next_quote_pk([3, 1, 2], {1}, rng) in {2, 3}
+
+
+def test_pick_next_quote_pk_deterministic():
+    d = date(2020, 6, 15)
+    rng = rng_for_date(d, "hint-test")
+    first = pick_next_quote_pk([10, 20, 30], set(), rng)
+    rng2 = rng_for_date(d, "hint-test")
+    second = pick_next_quote_pk([10, 20, 30], set(), rng2)
     assert first == second
 
 
-def test_build_mcq_episode_ids_not_enough_distractors():
-    rng = rng_for_date(date(2017, 1, 1), "x")
-    with pytest.raises(ValueError, match="not enough"):
-        build_mcq_episode_ids(1, [1], k=1, rng=rng)
+def test_pick_next_quote_pk_none_when_all_shown():
+    rng = rng_for_date(date(2019, 3, 3), "x")
+    assert pick_next_quote_pk([5], {5}, rng) is None
+
+
+def test_pick_next_quote_pk_empty_candidates():
+    rng = rng_for_date(date(2019, 3, 3), "x")
+    assert pick_next_quote_pk([], set(), rng) is None
+
+
+def test_format_progress_row():
+    assert format_progress_row(wrong_count=2) == "🟥 🟥 ⬛ ⬛ ⬛ ⬛"
+    assert format_progress_row(wrong_count=0) == "⬛ ⬛ ⬛ ⬛ ⬛ ⬛"
+
+
+def test_format_progress_row_invalid():
+    with pytest.raises(ValueError):
+        format_progress_row(wrong_count=7)

@@ -19,7 +19,9 @@ the current message with a new quote.
 
 ## Daily web game (Django + HTMX)
 
-Guess which episode a quote is from. **One puzzle per calendar day** in `GAME_TIMEZONE` (default `UTC`). Each day has a stable URL: `/play/YYYY-MM-DD/` so you can replay or share a specific day. `/` redirects to today’s path.
+Guess which episode a quote is from by **typing the episode title** (autocomplete after three characters; suggestions show `Title (airdate)` when airdate is present). You have **up to six guesses**. After each wrong guess, another quote from the **correct** episode appears as a hint (if that episode only has one quote in the database, the same line may repeat). When you finish, copy a share row of 🟥 / 🟩 / ⬛ (wrong, correct, unused).
+
+**One puzzle per calendar day** in `GAME_TIMEZONE` (default `UTC`). Each day has a stable URL: `/play/YYYY-MM-DD/` so you can replay or share a specific day. `/` redirects to today’s path.
 
 ### Setup
 
@@ -45,7 +47,6 @@ Environment variables (optional):
 | `GAME_TIMEZONE` | IANA zone for “today” on `/` (default `UTC`) |
 | `GAME_SEED` | Salt so daily picks can be rotated without changing dates |
 | `DATA_CSV_PATH` | CSV path (default: project root `data.csv`) |
-| `DISTRACTOR_COUNT` | Wrong answers shown (default `3`) |
 | `DJANGO_DEBUG` | `true` / `false` |
 
 ### Tests

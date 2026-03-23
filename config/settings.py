@@ -74,7 +74,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 GAME_TIMEZONE = os.environ.get("GAME_TIMEZONE", "UTC")
 GAME_SEED = os.environ.get("GAME_SEED", "")
 DATA_CSV_PATH = Path(os.environ.get("DATA_CSV_PATH", str(BASE_DIR / "data.csv")))
-DISTRACTOR_COUNT = int(os.environ.get("DISTRACTOR_COUNT", "3"))
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

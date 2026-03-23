@@ -1,0 +1,13 @@
+<div class="banner {% if won %}ok{% else %}no{% endif %}">
+{% if won %}
+<p>Correct. The episode is <strong>{{ episode_title }}</strong>.</p>
+{% else %}
+<p>Out of guesses. The episode was <strong>{{ episode_title }}</strong>.</p>
+{% endif %}
+</div>
+<p class="share-label"><label for="share-row">Share</label></p>
+<p class="share-copy">
+  <input id="share-row" type="text" readonly value="{{ share_row }}" size="40" class="share-input">
+  <button type="button" class="copy-share" data-copy-target="share-row">Copy</button>
+</p>
+<p><a href="{% url 'daily_play' play_date %}">Open this day again</a></p>

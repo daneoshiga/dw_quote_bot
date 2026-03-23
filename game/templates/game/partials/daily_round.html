@@ -1,0 +1,36 @@
+<blockquote>{{ quote.text }}</blockquote>
+<p class="progress-row" aria-label="Wrong guesses so far">{{ progress_row }}</p>
+<p class="meta">Guess {{ guess_number }} of {{ max_attempts }}. Wrong guesses count toward the row above.</p>
+{% if repeat_hint %}
+<p class="hint-note">Another line from the answer episode (repeated if that episode only has one quote in the database).</p>
+{% endif %}
+<form
+  method="post"
+  action="{% url 'daily_answer' play_date %}"
+  hx-post="{% url 'daily_answer' play_date %}"
+  hx-target="#daily-game-shell"
+  hx-swap="innerHTML"
+>
+  {% csrf_token %}
+  <input type="hidden" name="quote_id" value="{{ quote.pk }}">
+  <input type="hidden" name="episode_id" id="episode-id" value="">
+  <fieldset>
+    <legend>Which episode is this quote from?</legend>
+    <p>
+      <label for="episode-search">Episode title</label><br>
+      <input
+        id="episode-search"
+        type="search"
+        name="q"
+        autocomplete="off"
+        placeholder="Type at least 3 characters"
+        hx-get="{% url 'episode_autocomplete' play_date %}"
+        hx-trigger="input changed delay:300ms"
+        hx-target="#episode-suggestions"
+        hx-include="this"
+      >
+    </p>
+    <div id="episode-suggestions" class="episode-suggestions"></div>
+  </fieldset>
+  <p><button type="submit">Submit episode</button></p>
+</form>

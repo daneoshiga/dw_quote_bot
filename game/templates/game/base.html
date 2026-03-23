@@ -13,9 +13,32 @@
     blockquote { margin: 1rem 0; padding: 1rem; background: #f5f5f5; border-left: 4px solid #444; }
     fieldset { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; }
     label { display: block; margin: 0.35rem 0; cursor: pointer; }
+    .episode-suggestions { margin: 0.5rem 0; }
+    .suggestion-list { display: flex; flex-direction: column; gap: 0.35rem; }
+    .suggestion-pick {
+      text-align: left; padding: 0.4rem 0.6rem; border: 1px solid #ccc;
+      border-radius: 0.35rem; background: #fff; cursor: pointer; font: inherit;
+    }
+    .suggestion-pick:hover { background: #f0f0f0; }
+    .progress-row { font-size: 1.25rem; letter-spacing: 0.05em; }
+    .hint-note { font-size: 0.9rem; color: #555; }
+    .share-input { font-size: 1.1rem; padding: 0.35rem 0.5rem; width: min(100%, 22rem); }
+    .copy-share { margin-left: 0.5rem; padding: 0.35rem 0.75rem; cursor: pointer; }
   </style>
 </head>
 <body>
 {% block body %}{% endblock %}
+<script>
+document.body.addEventListener('click', function (ev) {
+  var btn = ev.target.closest('.copy-share');
+  if (!btn) return;
+  var id = btn.getAttribute('data-copy-target');
+  var el = id && document.getElementById(id);
+  if (!el) return;
+  el.select();
+  el.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(el.value);
+});
+</script>
 </body>
 </html>

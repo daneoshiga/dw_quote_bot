@@ -1,0 +1,13 @@
+{% if suggestions %}
+<div class="suggestion-list">
+{% for eid, label in suggestions %}
+<button
+  type="button"
+  class="suggestion-pick"
+  onclick="document.getElementById('episode-id').value='{{ eid }}'; document.getElementById('episode-search').value='{{ label|escapejs }}'; document.getElementById('episode-suggestions').innerHTML='';"
+>
+  {{ label }}
+</button>
+{% endfor %}
+</div>
+{% endif %}
