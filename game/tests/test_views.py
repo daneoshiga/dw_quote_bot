@@ -19,7 +19,7 @@ def _quote_id_from_response(response):
 
 @pytest.mark.django_db
 def test_today_redirect_uses_game_clock(client: Client):
-    with patch("game.views._today_in_game_tz", return_value=date(2030, 4, 5)):
+    with patch("game.views.today_in_game_tz", return_value=date(2030, 4, 5)):
         r = client.get("/", follow=False)
     assert r.status_code == 302
     assert r["Location"].endswith("/play/2030-04-05/")
@@ -33,6 +33,26 @@ def test_invalid_calendar_date_returns_404(client: Client, populated_quotes):
 @pytest.mark.django_db
 def test_malformed_date_returns_404(client: Client, populated_quotes):
     assert client.get("/play/not-a-date/").status_code == 404
+
+
+@pytest.mark.django_db
+def test_future_play_date_redirects_to_today(client: Client, populated_quotes):
+    with patch("game.views.today_in_game_tz", return_value=date(2020, 1, 1)):
+        r = client.get("/play/2020-01-02/", follow=False)
+    assert r.status_code == 302
+    assert r["Location"].endswith("/play/2020-01-01/")
+
+
+@pytest.mark.django_db
+def test_future_play_date_answer_redirects_to_today(client: Client, populated_quotes):
+    with patch("game.views.today_in_game_tz", return_value=date(2020, 1, 1)):
+        r = client.post(
+            "/play/2020-01-02/answer/",
+            {"quote_id": "1", "skip": "1"},
+            follow=False,
+        )
+    assert r.status_code == 302
+    assert r["Location"].endswith("/play/2020-01-01/")
 
 
 @pytest.mark.django_db

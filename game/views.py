@@ -1,11 +1,9 @@
-from datetime import date, datetime
-from zoneinfo import ZoneInfo
-
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
+from game.game_clock import today_in_game_tz
 from game.game_logic import format_progress_row, format_share_row
 from game.models import Episode
 from game.round_session import (
@@ -25,9 +23,11 @@ from game.services import (
 )
 
 
-def _today_in_game_tz() -> date:
-    tz = ZoneInfo(settings.GAME_TIMEZONE)
-    return datetime.now(tz).date()
+def _redirect_future_play_date_to_today(request, play_date):
+    today = today_in_game_tz()
+    if play_date > today:
+        return redirect("daily_play", play_date=today)
+    return None
 
 
 def _episode_title(episode_id: int) -> str:
@@ -39,12 +39,16 @@ def _episode_title(episode_id: int) -> str:
 
 @require_GET
 def today_redirect(request):
-    d = _today_in_game_tz()
+    d = today_in_game_tz()
     return redirect("daily_play", play_date=d)
 
 
 @require_http_methods(["GET", "HEAD"])
 def daily_play(request, play_date):
+    early = _redirect_future_play_date_to_today(request, play_date)
+    if early is not None:
+        return early
+
     try:
         quote_for_day = quote_for_play_date(play_date)
     except LookupError:
@@ -110,6 +114,10 @@ def daily_play(request, play_date):
 
 @require_http_methods(["POST"])
 def daily_answer(request, play_date):
+    early = _redirect_future_play_date_to_today(request, play_date)
+    if early is not None:
+        return early
+
     try:
         quote_id = int(request.POST.get("quote_id", ""))
     except (TypeError, ValueError):
@@ -225,6 +233,10 @@ def daily_answer(request, play_date):
 
 @require_GET
 def episode_autocomplete(request, play_date):
+    early = _redirect_future_play_date_to_today(request, play_date)
+    if early is not None:
+        return early
+
     q = request.GET.get("q", "")
     pairs = episode_search_results(q, limit=20)
     return render(

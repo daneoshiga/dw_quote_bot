@@ -1,6 +1,6 @@
 from datetime import date
 
-from game.game_logic import InvalidGameDate, parse_game_date
+from game.game_logic import parse_game_date
 
 
 class GameDateConverter:
