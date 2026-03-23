@@ -1,6 +1,10 @@
-<blockquote>{{ quote.text }}</blockquote>
+<div class="quote-stack" aria-live="polite">
+{% for q in shown_quotes %}
+<blockquote class="{% if forloop.last %}quote-latest{% endif %}">{{ q.text }}</blockquote>
+{% endfor %}
+</div>
 <p class="progress-row" aria-label="Wrong guesses so far">{{ progress_row }}</p>
-<p class="meta">Guess {{ guess_number }} of {{ max_attempts }}. Wrong guesses count toward the row above.</p>
+<p class="meta">Guess {{ guess_number }} of {{ max_attempts }}. Wrong guesses and skips count toward the row above.</p>
 {% if repeat_hint %}
 <p class="hint-note">Another line from the answer episode (repeated if that episode only has one quote in the database).</p>
 {% endif %}
@@ -12,10 +16,10 @@
   hx-swap="innerHTML"
 >
   {% csrf_token %}
-  <input type="hidden" name="quote_id" value="{{ quote.pk }}">
+  <input type="hidden" name="quote_id" value="{{ current_quote.pk }}">
   <input type="hidden" name="episode_id" id="episode-id" value="">
   <fieldset>
-    <legend>Which episode is this quote from?</legend>
+    <legend>Which episode are these quotes from?</legend>
     <p>
       <label for="episode-search">Episode title</label><br>
       <input
@@ -32,5 +36,8 @@
     </p>
     <div id="episode-suggestions" class="episode-suggestions"></div>
   </fieldset>
-  <p><button type="submit">Submit episode</button></p>
+  <p class="form-actions">
+    <button type="submit">Submit episode</button>
+    <button type="submit" name="skip" value="1">Skip this guess</button>
+  </p>
 </form>

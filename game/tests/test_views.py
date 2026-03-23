@@ -104,10 +104,91 @@ def test_answer_wrong_advances_quote_same_episode(client: Client, populated_quot
         HTTP_HX_REQUEST="true",
     )
     assert r.status_code == 200
+    body = r.content.decode()
+    assert quote.text in body
     q2_id = _quote_id_from_response(r)
     assert q2_id != quote.pk
     q2 = Quote.objects.get(pk=q2_id)
     assert q2.episode_id == quote.episode_id
+    assert q2.text in body
+
+
+@pytest.mark.django_db
+def test_skip_advances_like_wrong_guess(client: Client, populated_quotes):
+    play_date = date(2016, 8, 8)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    url = f"/play/{play_date.isoformat()}/answer/"
+    r = client.post(
+        url,
+        {"quote_id": str(quote.pk), "skip": "1"},
+        HTTP_HX_REQUEST="true",
+    )
+    assert r.status_code == 200
+    body = r.content.decode()
+    assert quote.text in body
+    q2_id = _quote_id_from_response(r)
+    assert q2_id != quote.pk
+    q2 = Quote.objects.get(pk=q2_id)
+    assert q2.episode_id == quote.episode_id
+    assert q2.text in body
+
+
+@pytest.mark.django_db
+def test_six_skips_ends_game_with_six_reds(client: Client, populated_quotes):
+    play_date = date(2015, 5, 5)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    url = f"/play/{play_date.isoformat()}/answer/"
+    quote_id = quote.pk
+    for _ in range(6):
+        r = client.post(
+            url,
+            {"quote_id": str(quote_id), "skip": "1"},
+            HTTP_HX_REQUEST="true",
+        )
+        assert r.status_code == 200
+        if "Out of guesses" in r.content.decode():
+            break
+        quote_id = _quote_id_from_response(r)
+    final = r.content.decode()
+    assert "Out of guesses" in final
+    assert final.count("🟥") == 6
+    assert "🟩" not in final
+
+
+@pytest.mark.django_db
+def test_answer_rejects_empty_episode_without_skip(client: Client, populated_quotes):
+    play_date = date(2016, 8, 8)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    url = f"/play/{play_date.isoformat()}/answer/"
+    r = client.post(
+        url,
+        {"quote_id": str(quote.pk), "episode_id": ""},
+        HTTP_HX_REQUEST="true",
+    )
+    assert r.status_code == 400
+
+
+@pytest.mark.django_db
+def test_skip_with_correct_episode_id_still_counts_as_wrong(client: Client, populated_quotes):
+    play_date = date(2016, 8, 8)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    url = f"/play/{play_date.isoformat()}/answer/"
+    r = client.post(
+        url,
+        {
+            "quote_id": str(quote.pk),
+            "skip": "1",
+            "episode_id": str(quote.episode_id),
+        },
+        HTTP_HX_REQUEST="true",
+    )
+    assert r.status_code == 200
+    q2_id = _quote_id_from_response(r)
+    assert q2_id != quote.pk
 
 
 @pytest.mark.django_db

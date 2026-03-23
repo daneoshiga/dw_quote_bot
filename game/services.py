@@ -76,3 +76,14 @@ def next_hint_quote_pk(
 
 def quote_by_pk(pk: int) -> Quote | None:
     return Quote.objects.select_related("episode").filter(pk=pk).first()
+
+
+def quotes_for_pks_in_order(pks: list[int]) -> list[Quote]:
+    """Fetch quotes for primary keys, preserving the order of ``pks``."""
+    if not pks:
+        return []
+    rows = list(
+        Quote.objects.select_related("episode").filter(pk__in=pks),
+    )
+    by_id = {q.pk: q for q in rows}
+    return [by_id[pk] for pk in pks if pk in by_id]

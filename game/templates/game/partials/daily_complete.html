@@ -1,3 +1,11 @@
+{% if shown_quotes %}
+<h2 class="quotes-seen-heading">Quotes you saw</h2>
+<div class="quote-stack">
+{% for q in shown_quotes %}
+<blockquote>{{ q.text }}</blockquote>
+{% endfor %}
+</div>
+{% endif %}
 <div class="banner {% if won %}ok{% else %}no{% endif %}">
 {% if won %}
 <p>Correct. The episode is <strong>{{ episode_title }}</strong>.</p>

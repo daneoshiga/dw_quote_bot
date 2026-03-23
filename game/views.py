@@ -21,6 +21,7 @@ from game.services import (
     next_hint_quote_pk,
     quote_by_pk,
     quote_for_play_date,
+    quotes_for_pks_in_order,
 )
 
 
@@ -81,15 +82,21 @@ def daily_play(request, play_date):
                 "share_row": state.get("share_row", ""),
                 "episode_title": _episode_title(int(state["answer_episode_id"])),
                 "outcome": state.get("status"),
+                "shown_quotes": quotes_for_pks_in_order(list(state.get("shown_quote_ids", []))),
             }
         )
     else:
-        last_pk = state["shown_quote_ids"][-1]
-        quote = quote_by_pk(last_pk) or quote_for_day
+        shown_pks = list(state["shown_quote_ids"])
+        shown_quotes = quotes_for_pks_in_order(shown_pks)
+        if not shown_quotes:
+            last_pk = shown_pks[-1] if shown_pks else quote_for_day.pk
+            q = quote_by_pk(last_pk) or quote_for_day
+            shown_quotes = [q]
         wrong_count = int(state.get("wrong_count", 0))
         context.update(
             {
-                "quote": quote,
+                "shown_quotes": shown_quotes,
+                "current_quote": shown_quotes[-1],
                 "wrong_count": wrong_count,
                 "progress_row": format_progress_row(
                     wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS
@@ -105,9 +112,18 @@ def daily_play(request, play_date):
 def daily_answer(request, play_date):
     try:
         quote_id = int(request.POST.get("quote_id", ""))
-        episode_id = int(request.POST.get("episode_id", ""))
     except (TypeError, ValueError):
         return HttpResponseBadRequest("invalid form")
+
+    skip = request.POST.get("skip") == "1"
+
+    if skip:
+        episode_id = None
+    else:
+        try:
+            episode_id = int(request.POST.get("episode_id", ""))
+        except (TypeError, ValueError):
+            return HttpResponseBadRequest("invalid form")
 
     state = get_round(request.session, play_date)
     if state is None or state.get("status") != "in_progress":
@@ -116,13 +132,13 @@ def daily_answer(request, play_date):
     if quote_id != state["shown_quote_ids"][-1]:
         return HttpResponseBadRequest("quote mismatch")
 
-    if not Episode.objects.filter(pk=episode_id).exists():
+    if not skip and not Episode.objects.filter(pk=episode_id).exists():
         return HttpResponseBadRequest("unknown episode")
 
     answer_episode_id = int(state["answer_episode_id"])
     wrong_count = int(state.get("wrong_count", 0))
 
-    if episode_id == answer_episode_id:
+    if not skip and episode_id == answer_episode_id:
         share = format_share_row(won=True, wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS)
         state = {
             "status": "won",
@@ -137,6 +153,7 @@ def daily_answer(request, play_date):
             "won": True,
             "episode_title": _episode_title(answer_episode_id),
             "share_row": share,
+            "shown_quotes": quotes_for_pks_in_order(state["shown_quote_ids"]),
         }
         if request.htmx:
             return render(request, "game/partials/daily_complete.html", ctx)
@@ -158,6 +175,7 @@ def daily_answer(request, play_date):
             "won": False,
             "episode_title": _episode_title(answer_episode_id),
             "share_row": share,
+            "shown_quotes": quotes_for_pks_in_order(state["shown_quote_ids"]),
         }
         if request.htmx:
             return render(request, "game/partials/daily_complete.html", ctx)
@@ -183,13 +201,17 @@ def daily_answer(request, play_date):
     }
     save_round(request.session, play_date, new_state)
 
-    quote = quote_by_pk(next_pk)
-    if quote is None:
+    if quote_by_pk(next_pk) is None:
+        return HttpResponseBadRequest("quote missing")
+
+    shown_quotes = quotes_for_pks_in_order(new_state["shown_quote_ids"])
+    if len(shown_quotes) != len(new_state["shown_quote_ids"]):
         return HttpResponseBadRequest("quote missing")
 
     ctx = {
         "play_date": play_date,
-        "quote": quote,
+        "shown_quotes": shown_quotes,
+        "current_quote": shown_quotes[-1],
         "wrong_count": wrong_count,
         "progress_row": format_progress_row(wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS),
         "guess_number": wrong_count + 1,
