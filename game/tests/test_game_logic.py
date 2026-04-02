@@ -5,8 +5,10 @@ from datetime import date
 import pytest
 
 from game.game_logic import (
+    SHARE_GAME_TITLE,
     InvalidGameDate,
     format_progress_row,
+    format_share_clipboard,
     format_share_row,
     parse_game_date,
     pick_next_quote_pk,
@@ -112,6 +114,40 @@ def test_format_share_row(won, wrong_count, expected):
 def test_format_share_row_invalid_win_wrong_count():
     with pytest.raises(ValueError, match="wrong_count"):
         format_share_row(won=True, wrong_count=6)
+
+
+def test_format_share_clipboard_loss_emoji_and_url():
+    d = date(2026, 3, 25)
+    emoji = format_share_row(won=False, wrong_count=6)
+    url = "https://example.com/play/2026-03-25/"
+    assert (
+        format_share_clipboard(
+            game_title=SHARE_GAME_TITLE,
+            play_date=d,
+            emoji_row=emoji,
+            game_url=url,
+        )
+        == "Doctor Who Daily Quote #2026-03-25\n"
+        f"{emoji}\n"
+        f"{url}"
+    )
+
+
+def test_format_share_clipboard_win_emoji_and_url():
+    d = date(2025, 1, 1)
+    emoji = format_share_row(won=True, wrong_count=0)
+    url = "http://testserver/play/2025-01-01/"
+    assert (
+        format_share_clipboard(
+            game_title=SHARE_GAME_TITLE,
+            play_date=d,
+            emoji_row=emoji,
+            game_url=url,
+        )
+        == "Doctor Who Daily Quote #2025-01-01\n"
+        f"{emoji}\n"
+        f"{url}"
+    )
 
 
 def test_format_share_row_invalid_loss_wrong_count():

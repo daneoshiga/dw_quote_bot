@@ -5,8 +5,19 @@
 </div>
 <p class="progress-row" aria-label="Wrong guesses so far">{{ progress_row }}</p>
 <p class="meta">Guess {{ guess_number }} of {{ max_attempts }}. Wrong guesses and skips count toward the row above.</p>
+{% if past_guesses %}
+<h2 class="quotes-seen-heading">Past guesses</h2>
+<ol>
+{% for guess in past_guesses %}
+  <li>{{ guess }}</li>
+{% endfor %}
+</ol>
+{% endif %}
 {% if repeat_hint %}
 <p class="hint-note">Another line from the answer episode (repeated if that episode only has one quote in the database).</p>
+{% endif %}
+{% if warning_message %}
+<p class="hint-note">{{ warning_message }}</p>
 {% endif %}
 <form
   method="post"

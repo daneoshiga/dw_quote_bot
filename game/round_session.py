@@ -6,12 +6,18 @@ from datetime import date
 from typing import Any, TypedDict
 
 
+class GuessHistoryEntry(TypedDict, total=False):
+    guess_type: str  # "episode" | "skip"
+    episode_id: int | None
+
+
 class DailyRoundState(TypedDict, total=False):
     status: str  # "in_progress" | "won" | "lost"
     shown_quote_ids: list[int]
     wrong_count: int
     answer_episode_id: int
     share_row: str
+    guess_history: list[GuessHistoryEntry]
 
 
 SESSION_KEY = "daily_rounds"
@@ -41,6 +47,7 @@ def new_round_from_quote(quote) -> DailyRoundState:
         "shown_quote_ids": [quote.pk],
         "wrong_count": 0,
         "answer_episode_id": quote.episode_id,
+        "guess_history": [],
     }
 
 

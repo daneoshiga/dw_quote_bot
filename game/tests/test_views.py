@@ -99,15 +99,20 @@ def test_answer_correct_htmx_and_session(client: Client, populated_quotes):
         HTTP_HX_REQUEST="true",
     )
     assert r.status_code == 200
+    htmx_body = r.content.decode()
     assert b"Correct" in r.content
-    assert "🟩" in r.content.decode()
-    assert "⬛" in r.content.decode()
+    assert "🟩" in htmx_body
+    assert "⬛" in htmx_body
+    assert f"Doctor Who Daily Quote #{play_date.isoformat()}" in htmx_body
+    assert f"http://testserver/play/{play_date.isoformat()}/" in htmx_body
 
     page = client.get(f"/play/{play_date.isoformat()}/")
     assert page.status_code == 200
     body = page.content.decode()
     assert "already finished" in body.lower()
     assert "won" in body.lower()
+    assert f"Doctor Who Daily Quote #{play_date.isoformat()}" in body
+    assert f"http://testserver/play/{play_date.isoformat()}/" in body
 
 
 @pytest.mark.django_db
@@ -175,6 +180,8 @@ def test_six_skips_ends_game_with_six_reds(client: Client, populated_quotes):
     assert "Out of guesses" in final
     assert final.count("🟥") == 6
     assert "🟩" not in final
+    assert f"Doctor Who Daily Quote #{play_date.isoformat()}" in final
+    assert f"http://testserver/play/{play_date.isoformat()}/" in final
 
 
 @pytest.mark.django_db
@@ -216,13 +223,18 @@ def test_six_wrong_ends_game_with_six_reds(client: Client, populated_quotes):
     play_date = date(2015, 5, 5)
     assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
     quote = quote_for_play_date(play_date)
-    wrong_ep = Episode.objects.exclude(pk=quote.episode_id).first()
+    wrong_eps = list(Episode.objects.exclude(pk=quote.episode_id).order_by("pk"))
+    assert wrong_eps
     url = f"/play/{play_date.isoformat()}/answer/"
     quote_id = quote.pk
-    for _ in range(6):
+    for attempt in range(6):
+        if attempt < len(wrong_eps):
+            payload = {"quote_id": str(quote_id), "episode_id": str(wrong_eps[attempt].pk)}
+        else:
+            payload = {"quote_id": str(quote_id), "skip": "1"}
         r = client.post(
             url,
-            {"quote_id": str(quote_id), "episode_id": str(wrong_ep.pk)},
+            payload,
             HTTP_HX_REQUEST="true",
         )
         assert r.status_code == 200
@@ -253,6 +265,112 @@ def test_session_persists_mid_round(client: Client, populated_quotes):
     page = client.get(f"/play/{play_date.isoformat()}/")
     assert page.status_code == 200
     assert _quote_id_from_response(page) == expected_next
+
+
+@pytest.mark.django_db
+def test_wrong_guess_shows_visible_past_guess_history(client: Client, populated_quotes):
+    play_date = date(2014, 6, 6)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    wrong_ep = Episode.objects.exclude(pk=quote.episode_id).first()
+    assert wrong_ep is not None
+
+    response = client.post(
+        f"/play/{play_date.isoformat()}/answer/",
+        {"quote_id": str(quote.pk), "episode_id": str(wrong_ep.pk)},
+        HTTP_HX_REQUEST="true",
+    )
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert "Past guesses" in body
+    assert "<li>" in body
+    assert wrong_ep.title in body
+
+
+@pytest.mark.django_db
+def test_duplicate_episode_guess_warns_and_does_not_consume_attempt(
+    client: Client, populated_quotes
+):
+    play_date = date(2014, 6, 7)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    wrong_ep = Episode.objects.exclude(pk=quote.episode_id).first()
+    assert wrong_ep is not None
+
+    first = client.post(
+        f"/play/{play_date.isoformat()}/answer/",
+        {"quote_id": str(quote.pk), "episode_id": str(wrong_ep.pk)},
+        HTTP_HX_REQUEST="true",
+    )
+    assert first.status_code == 200
+    second_quote_id = _quote_id_from_response(first)
+
+    state_before = get_round(client.session, play_date)
+    assert state_before is not None
+    wrong_before = int(state_before["wrong_count"])
+    history_before = list(state_before.get("guess_history", []))
+
+    duplicate = client.post(
+        f"/play/{play_date.isoformat()}/answer/",
+        {"quote_id": str(second_quote_id), "episode_id": str(wrong_ep.pk)},
+        HTTP_HX_REQUEST="true",
+    )
+    assert duplicate.status_code == 200
+    body = duplicate.content.decode()
+    assert "You already guessed that episode." in body
+    assert _quote_id_from_response(duplicate) == second_quote_id
+
+    state_after = get_round(client.session, play_date)
+    assert state_after is not None
+    assert int(state_after["wrong_count"]) == wrong_before
+    assert list(state_after.get("guess_history", [])) == history_before
+
+
+@pytest.mark.django_db
+def test_skip_shows_visible_past_guess_history(client: Client, populated_quotes):
+    play_date = date(2014, 7, 7)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+
+    response = client.post(
+        f"/play/{play_date.isoformat()}/answer/",
+        {"quote_id": str(quote.pk), "skip": "1"},
+        HTTP_HX_REQUEST="true",
+    )
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert "Past guesses" in body
+    assert "<li>" in body
+    assert "Skipped" in body
+
+
+@pytest.mark.django_db
+def test_terminal_screen_shows_full_past_guess_history(client: Client, populated_quotes):
+    play_date = date(2014, 8, 8)
+    assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
+    quote = quote_for_play_date(play_date)
+    wrong_ep = Episode.objects.exclude(pk=quote.episode_id).first()
+    assert wrong_ep is not None
+
+    first = client.post(
+        f"/play/{play_date.isoformat()}/answer/",
+        {"quote_id": str(quote.pk), "episode_id": str(wrong_ep.pk)},
+        HTTP_HX_REQUEST="true",
+    )
+    assert first.status_code == 200
+    second_quote_id = _quote_id_from_response(first)
+
+    second = client.post(
+        f"/play/{play_date.isoformat()}/answer/",
+        {"quote_id": str(second_quote_id), "episode_id": str(quote.episode_id)},
+        HTTP_HX_REQUEST="true",
+    )
+    assert second.status_code == 200
+    final_body = second.content.decode()
+    assert "Correct" in final_body
+    assert "Past guesses" in final_body
+    assert final_body.count("<li>") >= 2
+    assert wrong_ep.title in final_body
 
 
 @pytest.mark.django_db

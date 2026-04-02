@@ -12,6 +12,14 @@
 {% endfor %}
 </div>
 {% endif %}
+{% if past_guesses %}
+<h2 class="quotes-seen-heading">Past guesses</h2>
+<ol>
+{% for guess in past_guesses %}
+  <li>{{ guess }}</li>
+{% endfor %}
+</ol>
+{% endif %}
 <div class="banner {% if outcome == 'won' %}ok{% else %}no{% endif %}">
 {% if outcome == 'won' %}
 <p>You already finished today: <strong>won</strong>.</p>
@@ -21,7 +29,7 @@
 </div>
 <p class="share-label"><label for="share-row-done">Share</label></p>
 <p class="share-copy">
-  <input id="share-row-done" type="text" readonly value="{{ share_row }}" size="40" class="share-input">
+  <textarea id="share-row-done" readonly rows="4" class="share-input">{{ share_text }}</textarea>
   <button type="button" class="copy-share" data-copy-target="share-row-done">Copy</button>
 </p>
 <p class="meta">Answer: <strong>{{ episode_title }}</strong></p>

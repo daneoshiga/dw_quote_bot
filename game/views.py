@@ -1,10 +1,16 @@
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from game.game_clock import today_in_game_tz
-from game.game_logic import format_progress_row, format_share_row
+from game.game_logic import (
+    SHARE_GAME_TITLE,
+    format_progress_row,
+    format_share_clipboard,
+    format_share_row,
+)
 from game.models import Episode
 from game.round_session import (
     MAX_ATTEMPTS,
@@ -35,6 +41,48 @@ def _episode_title(episode_id: int) -> str:
     if ep is None:
         return "Unknown episode"
     return episode_choice_label(ep)
+
+
+def _share_text(request, play_date, share_row: str) -> str:
+    path = reverse("daily_play", kwargs={"play_date": play_date})
+    url = request.build_absolute_uri(path)
+    return format_share_clipboard(
+        game_title=SHARE_GAME_TITLE,
+        play_date=play_date,
+        emoji_row=share_row,
+        game_url=url,
+    )
+
+
+def _past_guesses(state) -> list[str]:
+    entries = list(state.get("guess_history", []))
+    if not entries:
+        return []
+
+    episode_ids = [
+        int(entry.get("episode_id"))
+        for entry in entries
+        if entry.get("guess_type") == "episode" and entry.get("episode_id") is not None
+    ]
+    episodes = Episode.objects.in_bulk(episode_ids)
+
+    past = []
+    for entry in entries:
+        if entry.get("guess_type") == "skip":
+            past.append("Skipped")
+            continue
+
+        episode_id = entry.get("episode_id")
+        if episode_id is None:
+            past.append("Unknown episode")
+            continue
+
+        episode = episodes.get(int(episode_id))
+        if episode is None:
+            past.append("Unknown episode")
+        else:
+            past.append(episode_choice_label(episode))
+    return past
 
 
 @require_GET
@@ -81,12 +129,14 @@ def daily_play(request, play_date):
     }
 
     if terminal:
+        share_row = state.get("share_row", "")
         context.update(
             {
-                "share_row": state.get("share_row", ""),
+                "share_text": _share_text(request, play_date, share_row),
                 "episode_title": _episode_title(int(state["answer_episode_id"])),
                 "outcome": state.get("status"),
                 "shown_quotes": quotes_for_pks_in_order(list(state.get("shown_quote_ids", []))),
+                "past_guesses": _past_guesses(state),
             }
         )
     else:
@@ -106,6 +156,7 @@ def daily_play(request, play_date):
                     wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS
                 ),
                 "guess_number": wrong_count + 1,
+                "past_guesses": _past_guesses(state),
             }
         )
 
@@ -145,6 +196,38 @@ def daily_answer(request, play_date):
 
     answer_episode_id = int(state["answer_episode_id"])
     wrong_count = int(state.get("wrong_count", 0))
+    guess_history = list(state.get("guess_history", []))
+    if not skip and any(
+        entry.get("guess_type") == "episode"
+        and entry.get("episode_id") is not None
+        and int(entry.get("episode_id")) == episode_id
+        for entry in guess_history
+    ):
+        shown_quotes = quotes_for_pks_in_order(list(state["shown_quote_ids"]))
+        if len(shown_quotes) != len(state["shown_quote_ids"]):
+            return HttpResponseBadRequest("quote missing")
+        ctx = {
+            "play_date": play_date,
+            "shown_quotes": shown_quotes,
+            "current_quote": shown_quotes[-1],
+            "wrong_count": wrong_count,
+            "progress_row": format_progress_row(
+                wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS
+            ),
+            "guess_number": wrong_count + 1,
+            "max_attempts": MAX_ATTEMPTS,
+            "past_guesses": _past_guesses(state),
+            "warning_message": "You already guessed that episode.",
+        }
+        if request.htmx:
+            return render(request, "game/partials/daily_round.html", ctx)
+        return redirect("daily_play", play_date=play_date)
+
+    guess_entry = {"guess_type": "skip", "episode_id": None} if skip else {
+        "guess_type": "episode",
+        "episode_id": episode_id,
+    }
+    guess_history.append(guess_entry)
 
     if not skip and episode_id == answer_episode_id:
         share = format_share_row(won=True, wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS)
@@ -154,14 +237,16 @@ def daily_answer(request, play_date):
             "wrong_count": wrong_count,
             "answer_episode_id": answer_episode_id,
             "share_row": share,
+            "guess_history": guess_history,
         }
         save_round(request.session, play_date, state)
         ctx = {
             "play_date": play_date,
             "won": True,
             "episode_title": _episode_title(answer_episode_id),
-            "share_row": share,
+            "share_text": _share_text(request, play_date, share),
             "shown_quotes": quotes_for_pks_in_order(state["shown_quote_ids"]),
+            "past_guesses": _past_guesses(state),
         }
         if request.htmx:
             return render(request, "game/partials/daily_complete.html", ctx)
@@ -176,14 +261,16 @@ def daily_answer(request, play_date):
             "wrong_count": wrong_count,
             "answer_episode_id": answer_episode_id,
             "share_row": share,
+            "guess_history": guess_history,
         }
         save_round(request.session, play_date, state)
         ctx = {
             "play_date": play_date,
             "won": False,
             "episode_title": _episode_title(answer_episode_id),
-            "share_row": share,
+            "share_text": _share_text(request, play_date, share),
             "shown_quotes": quotes_for_pks_in_order(state["shown_quote_ids"]),
+            "past_guesses": _past_guesses(state),
         }
         if request.htmx:
             return render(request, "game/partials/daily_complete.html", ctx)
@@ -206,6 +293,7 @@ def daily_answer(request, play_date):
         "shown_quote_ids": prev_ids + [next_pk],
         "wrong_count": wrong_count,
         "answer_episode_id": answer_episode_id,
+        "guess_history": guess_history,
     }
     save_round(request.session, play_date, new_state)
 
@@ -225,6 +313,7 @@ def daily_answer(request, play_date):
         "guess_number": wrong_count + 1,
         "max_attempts": MAX_ATTEMPTS,
         "repeat_hint": repeat_hint,
+        "past_guesses": _past_guesses(new_state),
     }
     if request.htmx:
         return render(request, "game/partials/daily_round.html", ctx)

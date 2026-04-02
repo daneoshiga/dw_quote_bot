@@ -62,6 +62,16 @@ RED = "🟥"
 GREEN = "🟩"
 BLACK = "⬛"
 
+SHARE_GAME_TITLE = "Doctor Who Daily Quote"
+
+
+def format_share_clipboard(
+    *, game_title: str, play_date: date, emoji_row: str, game_url: str
+) -> str:
+    """Multiline text for social paste: headline with date, emoji result row, link to the day."""
+    headline = f"{game_title} #{play_date.isoformat()}"
+    return f"{headline}\n{emoji_row}\n{game_url}"
+
 
 def format_share_row(*, won: bool, wrong_count: int, max_attempts: int = 6) -> str:
     """
