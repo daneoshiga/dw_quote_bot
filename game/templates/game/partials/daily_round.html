@@ -1,12 +1,12 @@
-<div class="quote-stack" aria-live="polite">
+<div aria-live="polite">
 {% for q in shown_quotes %}
-<blockquote class="{% if forloop.last %}quote-latest{% endif %}">{{ q.text }}</blockquote>
+<blockquote class="dw-quote {% if forloop.last %}dw-quote-latest{% endif %}">{{ q.text }}</blockquote>
 {% endfor %}
 </div>
-<p class="progress-row" aria-label="Wrong guesses so far">{{ progress_row }}</p>
-<p class="meta">Guess {{ guess_number }} of {{ max_attempts }}. Wrong guesses and skips count toward the row above.</p>
+<p class="text-xl tracking-widest font-mono my-3" aria-label="Wrong guesses so far">{{ progress_row }}</p>
+<p class="text-sm text-[oklch(50%_0.02_240)] mb-3">Guess {{ guess_number }} of {{ max_attempts }}. Wrong guesses and skips count toward the row above.</p>
 {% if past_guesses %}
-<h2 class="quotes-seen-heading">Past guesses</h2>
+<h2 class="text-base font-semibold mt-4 mb-1">Past guesses</h2>
 <ol>
 {% for guess in past_guesses %}
   <li>{{ guess }}</li>
@@ -14,10 +14,10 @@
 </ol>
 {% endif %}
 {% if repeat_hint %}
-<p class="hint-note">Another line from the answer episode (repeated if that episode only has one quote in the database).</p>
+<p class="text-sm text-[oklch(50%_0.02_240)] my-1">Another line from the answer episode (repeated if that episode only has one quote in the database).</p>
 {% endif %}
 {% if warning_message %}
-<p class="hint-note">{{ warning_message }}</p>
+<p class="text-sm text-[oklch(50%_0.02_240)] my-1">{{ warning_message }}</p>
 {% endif %}
 <form
   method="post"
@@ -29,26 +29,27 @@
   {% csrf_token %}
   <input type="hidden" name="quote_id" value="{{ current_quote.pk }}">
   <input type="hidden" name="episode_id" id="episode-id" value="">
-  <fieldset>
-    <legend>Which episode are these quotes from?</legend>
+  <fieldset class="border border-[oklch(85%_0.01_240)] rounded-lg p-4 my-4">
+    <legend class="px-1 font-medium">Which episode are these quotes from?</legend>
     <p>
-      <label for="episode-search">Episode title</label><br>
+      <label for="episode-search" class="block text-sm font-medium mb-1">Episode title</label>
       <input
         id="episode-search"
         type="search"
         name="q"
         autocomplete="off"
         placeholder="Type at least 3 characters"
+        class="w-full px-3 py-2 border border-[oklch(85%_0.01_240)] rounded-md text-sm"
         hx-get="{% url 'episode_autocomplete' play_date %}"
         hx-trigger="input changed delay:300ms"
         hx-target="#episode-suggestions"
         hx-include="this"
       >
     </p>
-    <div id="episode-suggestions" class="episode-suggestions"></div>
+    <div id="episode-suggestions" class="mt-2 flex flex-col gap-1"></div>
   </fieldset>
-  <p class="form-actions">
-    <button type="submit">Submit episode</button>
-    <button type="submit" name="skip" value="1">Skip this guess</button>
+  <p class="flex gap-2 mt-3">
+    <button type="submit" class="dw-btn">Submit episode</button>
+    <button type="submit" name="skip" value="1" class="dw-btn-secondary">Skip this guess</button>
   </p>
 </form>

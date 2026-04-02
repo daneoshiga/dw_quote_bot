@@ -1,38 +1,37 @@
 {% extends "game/base.html" %}
 {% block title %}Daily quote · {{ play_date }}{% endblock %}
 {% block body %}
-<h1>Daily quote</h1>
-<p class="meta"><time datetime="{{ play_date|date:'c' }}">{{ play_date }}</time> · <a href="{% url 'today_redirect' %}">Go to today</a> ({{ game_timezone }})</p>
+<h1 class="text-2xl font-bold mb-2">Daily quote</h1>
+<p class="text-sm text-[oklch(50%_0.02_240)] mb-4"><time datetime="{{ play_date|date:'c' }}">{{ play_date }}</time> · <a href="{% url 'today_redirect' %}">Go to today</a> ({{ game_timezone }})</p>
 {% if terminal %}
 {% if shown_quotes %}
-<h2 class="quotes-seen-heading">Quotes you saw</h2>
-<div class="quote-stack">
+<h2 class="text-base font-semibold mt-4 mb-1">Quotes you saw</h2>
+<div aria-live="polite">
 {% for q in shown_quotes %}
-<blockquote>{{ q.text }}</blockquote>
+<blockquote class="dw-quote">{{ q.text }}</blockquote>
 {% endfor %}
 </div>
 {% endif %}
 {% if past_guesses %}
-<h2 class="quotes-seen-heading">Past guesses</h2>
+<h2 class="text-base font-semibold mt-4 mb-1">Past guesses</h2>
 <ol>
 {% for guess in past_guesses %}
   <li>{{ guess }}</li>
 {% endfor %}
 </ol>
 {% endif %}
-<div class="banner {% if outcome == 'won' %}ok{% else %}no{% endif %}">
+<div class="dw-banner {% if outcome == 'won' %}dw-banner-ok{% else %}dw-banner-no{% endif %}">
 {% if outcome == 'won' %}
-<p>You already finished today: <strong>won</strong>.</p>
+<p>Correct. The episode is <strong>{{ episode_title }}</strong>.</p>
 {% else %}
-<p>You already finished today: <strong>lost</strong>.</p>
+<p>Out of guesses. The episode was <strong>{{ episode_title }}</strong>.</p>
 {% endif %}
 </div>
-<p class="share-label"><label for="share-row-done">Share</label></p>
-<p class="share-copy">
-  <textarea id="share-row-done" readonly rows="4" class="share-input">{{ share_text }}</textarea>
-  <button type="button" class="copy-share" data-copy-target="share-row-done">Copy</button>
+<p class="text-sm font-medium mb-1"><label for="share-row-done">Share</label></p>
+<p class="flex items-start gap-2">
+  <textarea id="share-row-done" readonly rows="4" class="w-full text-base px-2 py-1.5 min-h-20 resize-y border border-[oklch(85%_0.01_240)] rounded-md font-[inherit] leading-snug">{{ share_text }}</textarea>
+  <button type="button" class="copy-share dw-btn-secondary shrink-0" data-copy-target="share-row-done">Copy</button>
 </p>
-<p class="meta">Answer: <strong>{{ episode_title }}</strong></p>
 {% else %}
 <div id="daily-game-shell">
 {% include "game/partials/daily_round.html" %}

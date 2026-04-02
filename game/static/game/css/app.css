@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  /* Doctor Who palette — TARDIS blue as primary */
+  --color-background:             oklch(98% 0.005 240);
+  --color-foreground:             oklch(15% 0.02 240);
+
+  --color-primary:                oklch(38% 0.18 235);
+  --color-primary-hover:          oklch(32% 0.18 235);
+  --color-primary-foreground:     oklch(97% 0.01 235);
+
+  --color-surface:                oklch(100% 0 0);
+  --color-surface-muted:          oklch(95% 0.005 240);
+
+  --color-success:                oklch(40% 0.12 145);
+  --color-success-bg:             oklch(94% 0.04 145);
+  --color-error:                  oklch(45% 0.18 27);
+  --color-error-bg:               oklch(96% 0.04 27);
+
+  --color-quote-border:           oklch(50% 0.05 240);
+  --color-quote-latest:           oklch(40% 0.14 145);
+  --color-quote-latest-bg:        oklch(95% 0.04 145);
+
+  --color-border:                 oklch(85% 0.01 240);
+  --color-muted-fg:               oklch(50% 0.02 240);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  .dw-quote {
+    @apply my-3 px-4 py-3 bg-surface-muted border-l-4 border-quote-border rounded-r-md text-base;
+  }
+  .dw-quote-latest {
+    @apply border-quote-latest bg-quote-latest-bg;
+  }
+
+  .dw-banner {
+    @apply px-4 py-3 rounded-md mb-4 font-medium;
+  }
+  .dw-banner-ok {
+    @apply bg-success-bg text-success;
+  }
+  .dw-banner-no {
+    @apply bg-error-bg text-error;
+  }
+
+  .dw-suggestion {
+    @apply w-full text-left px-3 py-2 border border-border rounded-md bg-surface
+           hover:bg-surface-muted cursor-pointer text-sm transition-colors;
+  }
+
+  .dw-btn {
+    @apply px-4 py-2 bg-primary text-primary-foreground rounded-md
+           hover:bg-primary-hover cursor-pointer text-sm font-medium transition-colors;
+  }
+
+  .dw-btn-secondary {
+    @apply px-4 py-2 bg-surface border border-border text-foreground rounded-md
+           hover:bg-surface-muted cursor-pointer text-sm font-medium transition-colors;
+  }
+}

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,34 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Doctor Who quote game{% endblock %}</title>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-    .banner { padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
-    .banner.ok { background: #d4edda; color: #155724; }
-    .banner.no { background: #f8d7da; color: #721c24; }
-    blockquote { margin: 1rem 0; padding: 1rem; background: #f5f5f5; border-left: 4px solid #444; }
-    .quote-stack blockquote { margin: 0.75rem 0; }
-    .quote-stack blockquote.quote-latest { border-left-color: #1a6b1a; background: #f0faf0; }
-    .quotes-seen-heading { font-size: 1rem; margin: 1rem 0 0.25rem; font-weight: 600; }
-    fieldset { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; }
-    label { display: block; margin: 0.35rem 0; cursor: pointer; }
-    .episode-suggestions { margin: 0.5rem 0; }
-    .suggestion-list { display: flex; flex-direction: column; gap: 0.35rem; }
-    .suggestion-pick {
-      text-align: left; padding: 0.4rem 0.6rem; border: 1px solid #ccc;
-      border-radius: 0.35rem; background: #fff; cursor: pointer; font: inherit;
-    }
-    .suggestion-pick:hover { background: #f0f0f0; }
-    .progress-row { font-size: 1.25rem; letter-spacing: 0.05em; }
-    .hint-note { font-size: 0.9rem; color: #555; }
-    .share-input {
-      font-size: 1.1rem; padding: 0.35rem 0.5rem; width: min(100%, 28rem);
-      min-height: 5rem; resize: vertical; font-family: inherit; line-height: 1.4;
-    }
-    .copy-share { margin-left: 0.5rem; padding: 0.35rem 0.75rem; cursor: pointer; }
-  </style>
+  <link rel="stylesheet" href="{% static 'game/css/output.css' %}">
 </head>
-<body>
+<body class="max-w-2xl mx-auto px-4 py-8">
 {% block body %}{% endblock %}
 <script>
 document.body.addEventListener('click', function (ev) {

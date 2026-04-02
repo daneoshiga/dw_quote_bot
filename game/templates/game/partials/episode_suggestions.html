@@ -1,9 +1,9 @@
 {% if suggestions %}
-<div class="suggestion-list">
+<div class="flex flex-col gap-1">
 {% for eid, label in suggestions %}
 <button
   type="button"
-  class="suggestion-pick"
+  class="dw-suggestion"
   onclick="document.getElementById('episode-id').value='{{ eid }}'; document.getElementById('episode-search').value='{{ label|escapejs }}'; document.getElementById('episode-suggestions').innerHTML='';"
 >
   {{ label }}

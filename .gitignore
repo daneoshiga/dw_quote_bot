@@ -117,3 +117,7 @@ dmypy.json
 
 
 raw_data/
+
+# Tailwind
+bin/tailwindcss
+game/static/game/css/output.css
