@@ -38,4 +38,4 @@ css-watch:
 
 serve:
 	./bin/tailwindcss -i game/static/game/css/app.css -o game/static/game/css/output.css --watch &
-	python manage.py runserver
+	python manage.py runserver 8001
