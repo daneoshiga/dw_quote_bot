@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(todo.sh *)",
+      "Bash(uv run pytest *)",
+      "Bash(mypy *)",
+      "Bash(make lint)",
+      "Bash(uv run ruff *)",
+      "Bash(rtk *)",
+      "Edit(game/*)",
+      "Write(game/*)",
+      "Edit(docs/*)",
+      "Write(docs/*)"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:skills.sh)",
+      "Bash(npx skills:*)",
+      "Bash(curl -sL https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64 -o /Users/danilo.shiga/code/other/dw_quote_bot/bin/tailwindcss)",
+      "Bash(chmod +x /Users/danilo.shiga/code/other/dw_quote_bot/bin/tailwindcss)",
+      "Bash(./bin/tailwindcss -i game/static/game/css/app.css -o game/static/game/css/output.css 2>&1)",
+      "Bash(pytest:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(python -m pytest)",
+      "Bash(uv run:*)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "Bash(rtk find *)",
+      "Bash(rtk ls *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "code-review-graph"
+  ]
+}

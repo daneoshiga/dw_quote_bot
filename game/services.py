@@ -60,13 +60,11 @@ def next_hint_quote_pk(
     play_date: date,
     episode_id: int,
     shown_quote_ids: list[int],
-    hint_attempt: int,
 ) -> int | None:
     """
     Deterministic next quote from the answer episode, excluding already-shown pks.
-
-    hint_attempt: 1-based index of this hint draw (first extra quote after wrong #1 uses 1).
     """
+    hint_attempt = len(shown_quote_ids)
     game_seed = settings.GAME_SEED
     rng = rng_for_date(play_date, f"{game_seed}:hint:{hint_attempt}")
     candidates = quote_pks_for_episode(episode_id)
