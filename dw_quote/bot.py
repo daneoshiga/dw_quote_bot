@@ -38,7 +38,7 @@ def keyboard_factory(query_type, inline_query="", name=ANY_NAME):
     }
 
     search_button = types.InlineKeyboardButton(
-        text=emojize(f":mag_right: {search_text[query_type]}", language="alias"),
+        text=emojize(":mag_right: ", language="alias") + search_text[query_type],
         switch_inline_query_current_chat=inline_query,
     )
 

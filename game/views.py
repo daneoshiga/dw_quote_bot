@@ -1,3 +1,8 @@
+import functools
+from dataclasses import dataclass
+from datetime import date
+from typing import assert_never
+
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect, render
@@ -10,39 +15,75 @@ from game.game_logic import (
     format_progress_row,
     format_share_clipboard,
 )
-from game.models import Episode
+from game.models import Episode, Quote
 from game.round_session import (
     MAX_ATTEMPTS,
+    DailyRoundState,
+    Outcome,
     advance_hint,
     apply_guess,
     apply_skip,
     get_round,
+    is_stale_for_anchor,
     is_terminal,
     new_round_from_quote,
     save_round,
 )
 from game.services import (
+    episode_by_pk,
     episode_choice_label,
     episode_search_results,
     next_hint_quote_pk,
-    quote_by_pk,
     quote_for_play_date,
     quotes_for_pks_in_order,
 )
 
 
-def _redirect_future_play_date_to_today(request, play_date):
-    today = today_in_game_tz()
-    if play_date > today:
-        return redirect("daily_play", play_date=today)
-    return None
+def reject_future_play_date(view):
+    @functools.wraps(view)
+    def wrapper(request, play_date, *args, **kwargs):
+        today = today_in_game_tz()
+        if play_date > today:
+            return redirect("daily_play", play_date=today)
+        return view(request, play_date, *args, **kwargs)
+
+    return wrapper
 
 
-def _episode_title(episode_id: int) -> str:
-    ep = Episode.objects.filter(pk=episode_id).only("title", "airdate").first()
-    if ep is None:
-        return "Unknown episode"
-    return episode_choice_label(ep)
+@dataclass(frozen=True)
+class GuessForm:
+    quote_id: int
+    episode_id: int
+
+
+@dataclass(frozen=True)
+class SkipForm:
+    quote_id: int
+
+
+AnswerForm = GuessForm | SkipForm
+
+
+class _NoQuotesAvailable(Exception):
+    """Raised when no anchor quote can be fetched from the DB."""
+
+
+def _parse_answer_form(request) -> AnswerForm | None:
+    try:
+        quote_id = int(request.POST.get("quote_id", ""))
+    except (TypeError, ValueError):
+        return None
+    if request.POST.get("skip") == "1":
+        return SkipForm(quote_id=quote_id)
+    try:
+        episode_id = int(request.POST.get("episode_id", ""))
+    except (TypeError, ValueError):
+        return None
+    return GuessForm(quote_id=quote_id, episode_id=episode_id)
+
+
+def _episode_label(episode: Episode | None) -> str:
+    return episode_choice_label(episode) if episode else "Unknown episode"
 
 
 def _share_text(request, play_date, share_row: str) -> str:
@@ -56,35 +97,135 @@ def _share_text(request, play_date, share_row: str) -> str:
     )
 
 
-def _past_guesses(state) -> list[str]:
+def _past_guesses(state: DailyRoundState) -> list[str]:
     entries = state["guess_history"]
     if not entries:
         return []
 
     episode_ids = [
-        int(entry["episode_id"])
-        for entry in entries
-        if entry["guess_type"] == "episode" and entry["episode_id"] is not None
+        entry["episode_id"] for entry in entries if entry["guess_type"] == "episode"
     ]
-    episodes = Episode.objects.in_bulk(episode_ids)
+    episodes = Episode.objects.in_bulk(episode_ids) if episode_ids else {}
 
     past = []
     for entry in entries:
         if entry["guess_type"] == "skip":
             past.append("Skipped")
-            continue
-
-        episode_id = entry["episode_id"]
-        if episode_id is None:
-            past.append("Unknown episode")
-            continue
-
-        episode = episodes.get(int(episode_id))
-        if episode is None:
-            past.append("Unknown episode")
         else:
-            past.append(episode_choice_label(episode))
+            past.append(_episode_label(episodes.get(entry["episode_id"])))
     return past
+
+
+def _resolve_shown_quotes(state: DailyRoundState) -> list[Quote] | None:
+    """Fetch quotes for all shown pks; None if any are missing from the DB."""
+    pks = state["shown_quote_ids"]
+    shown = quotes_for_pks_in_order(pks)
+    return shown if len(shown) == len(pks) else None
+
+
+def _start_fresh_round(
+    request, play_date, anchor: Quote
+) -> tuple[DailyRoundState, list[Quote]]:
+    state = new_round_from_quote(anchor)
+    save_round(request.session, play_date, state)
+    return state, [anchor]
+
+
+def _ensure_valid_round(request, play_date) -> tuple[DailyRoundState, list[Quote]]:
+    """Return a renderable (state, shown_quotes) pair.
+
+    Creates or re-anchors the session round when needed. Raises
+    _NoQuotesAvailable when the DB has no quotes to anchor on.
+    """
+    state = get_round(request.session, play_date)
+
+    if state is not None and is_terminal(state):
+        return state, quotes_for_pks_in_order(state["shown_quote_ids"])
+
+    try:
+        anchor = quote_for_play_date(play_date)
+    except LookupError as exc:
+        raise _NoQuotesAvailable() from exc
+
+    if state is None or is_stale_for_anchor(state, anchor):
+        return _start_fresh_round(request, play_date, anchor)
+
+    shown = _resolve_shown_quotes(state)
+    if shown is None:
+        return _start_fresh_round(request, play_date, anchor)
+    return state, shown
+
+
+def _build_in_progress_ctx(
+    state: DailyRoundState,
+    shown_quotes: list[Quote],
+    *,
+    warning: str | None = None,
+    repeat_hint: bool = False,
+) -> dict:
+    wrong_count = state["wrong_count"]
+    ctx: dict = {
+        "shown_quotes": shown_quotes,
+        "current_quote": shown_quotes[-1],
+        "wrong_count": wrong_count,
+        "progress_row": format_progress_row(
+            wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS
+        ),
+        "guess_number": wrong_count + 1,
+        "max_attempts": MAX_ATTEMPTS,
+        "past_guesses": _past_guesses(state),
+        "repeat_hint": repeat_hint,
+    }
+    if warning is not None:
+        ctx["warning_message"] = warning
+    return ctx
+
+
+def _build_terminal_ctx(
+    request,
+    play_date: date,
+    state: DailyRoundState,
+    shown_quotes: list[Quote],
+    answer_episode: Episode | None,
+) -> dict:
+    return {
+        "shown_quotes": shown_quotes,
+        "share_text": _share_text(request, play_date, state["share_row"]),
+        "episode_title": _episode_label(answer_episode),
+        "outcome": state["status"],
+        "past_guesses": _past_guesses(state),
+    }
+
+
+def _respond(request, play_date, template: str, ctx: dict):
+    ctx["play_date"] = play_date
+    if request.htmx:
+        return render(request, template, ctx)
+    return redirect("daily_play", play_date=play_date)
+
+
+def _render_in_progress(
+    request, play_date, state: DailyRoundState, *, warning=None, repeat_hint=False
+):
+    shown = _resolve_shown_quotes(state)
+    if shown is None:
+        return HttpResponseBadRequest("quote missing")
+    ctx = _build_in_progress_ctx(state, shown, warning=warning, repeat_hint=repeat_hint)
+    return _respond(request, play_date, "game/partials/daily-round.html", ctx)
+
+
+def _render_terminal(
+    request,
+    play_date: date,
+    state: DailyRoundState,
+    *,
+    answer_episode: Episode | None = None,
+):
+    shown = quotes_for_pks_in_order(state["shown_quote_ids"])
+    if answer_episode is None:
+        answer_episode = episode_by_pk(state["answer_episode_id"])
+    ctx = _build_terminal_ctx(request, play_date, state, shown, answer_episode)
+    return _respond(request, play_date, "game/partials/daily-complete.html", ctx)
 
 
 @require_GET
@@ -94,194 +235,93 @@ def today_redirect(request):
 
 
 @require_http_methods(["GET", "HEAD"])
+@reject_future_play_date
 def daily_play(request, play_date):
-    early = _redirect_future_play_date_to_today(request, play_date)
-    if early is not None:
-        return early
-
     try:
-        quote_for_day = quote_for_play_date(play_date)
-    except LookupError:
+        state, shown = _ensure_valid_round(request, play_date)
+    except _NoQuotesAvailable:
         return render(
-            request,
-            "game/no_quotes.html",
-            {"play_date": play_date},
-            status=503,
+            request, "game/no-quotes.html", {"play_date": play_date}, status=503
         )
 
-    state = get_round(request.session, play_date)
-    if state is None:
-        state = new_round_from_quote(quote_for_day)
-        save_round(request.session, play_date, state)
-    elif state["status"] == "in_progress":
-        anchor = quote_for_play_date(play_date)
-        if state["answer_episode_id"] != anchor.episode_id:
-            state = new_round_from_quote(anchor)
-            save_round(request.session, play_date, state)
-        elif state["shown_quote_ids"][0] != anchor.pk:
-            state = new_round_from_quote(anchor)
-            save_round(request.session, play_date, state)
-
     terminal = is_terminal(state)
-    context = {
+    context: dict = {
         "play_date": play_date,
         "game_timezone": settings.GAME_TIMEZONE,
         "terminal": terminal,
         "max_attempts": MAX_ATTEMPTS,
     }
-
     if terminal:
-        share_row = state.get("share_row", "")
-        context.update(
-            {
-                "share_text": _share_text(request, play_date, share_row),
-                "episode_title": _episode_title(int(state["answer_episode_id"])),
-                "outcome": state["status"],
-                "shown_quotes": quotes_for_pks_in_order(list(state["shown_quote_ids"])),
-                "past_guesses": _past_guesses(state),
-            }
-        )
+        answer_ep = episode_by_pk(state["answer_episode_id"])
+        context.update(_build_terminal_ctx(request, play_date, state, shown, answer_ep))
     else:
-        shown_pks = list(state["shown_quote_ids"])
-        shown_quotes = quotes_for_pks_in_order(shown_pks)
-        if not shown_quotes:
-            last_pk = shown_pks[-1] if shown_pks else quote_for_day.pk
-            q = quote_by_pk(last_pk) or quote_for_day
-            shown_quotes = [q]
-        wrong_count = state["wrong_count"]
-        context.update(
-            {
-                "shown_quotes": shown_quotes,
-                "current_quote": shown_quotes[-1],
-                "wrong_count": wrong_count,
-                "progress_row": format_progress_row(
-                    wrong_count=wrong_count, max_attempts=MAX_ATTEMPTS
-                ),
-                "guess_number": wrong_count + 1,
-                "past_guesses": _past_guesses(state),
-            }
-        )
+        context.update(_build_in_progress_ctx(state, shown))
 
-    return render(request, "game/daily_play.html", context)
+    return render(request, "game/daily-play.html", context)
+
+
+def _continue_after_attempt(
+    state: DailyRoundState, play_date: date
+) -> tuple[DailyRoundState, bool]:
+    """After a non-terminal attempt, pick the next hint. Returns (state, repeat_hint)."""
+    prev_last = state["shown_quote_ids"][-1]
+    next_pk = next_hint_quote_pk(
+        play_date, state["answer_episode_id"], state["shown_quote_ids"]
+    )
+    if next_pk is None:
+        return state, True
+    return advance_hint(state, next_pk), next_pk == prev_last
 
 
 @require_http_methods(["POST"])
+@reject_future_play_date
 def daily_answer(request, play_date):
-    early = _redirect_future_play_date_to_today(request, play_date)
-    if early is not None:
-        return early
-
-    try:
-        quote_id = int(request.POST.get("quote_id", ""))
-    except (TypeError, ValueError):
+    parsed = _parse_answer_form(request)
+    if parsed is None:
         return HttpResponseBadRequest("invalid form")
-
-    skip = request.POST.get("skip") == "1"
-
-    if skip:
-        episode_id = None
-    else:
-        try:
-            episode_id = int(request.POST.get("episode_id", ""))
-        except (TypeError, ValueError):
-            return HttpResponseBadRequest("invalid form")
 
     state = get_round(request.session, play_date)
     if state is None or state["status"] != "in_progress":
         return HttpResponseBadRequest("no active round")
 
-    if quote_id != state["shown_quote_ids"][-1]:
+    if parsed.quote_id != state["shown_quote_ids"][-1]:
         return HttpResponseBadRequest("quote mismatch")
 
-    if not skip and not Episode.objects.filter(pk=episode_id).exists():
-        return HttpResponseBadRequest("unknown episode")
+    guessed_episode: Episode | None = None
+    match parsed:
+        case GuessForm(episode_id=eid):
+            guessed_episode = episode_by_pk(eid)
+            if guessed_episode is None:
+                return HttpResponseBadRequest("unknown episode")
+            post_attempt, outcome = apply_guess(state, eid)
+        case SkipForm():
+            post_attempt, outcome = apply_skip(state)
+        case _:
+            assert_never(parsed)
 
-    if skip:
-        new_state, outcome = apply_skip(state)
-    else:
-        new_state, outcome = apply_guess(state, episode_id)
+    if outcome is Outcome.DUPLICATE:
+        return _render_in_progress(
+            request, play_date, state, warning="You already guessed that episode."
+        )
 
-    if outcome == "duplicate":
-        shown_quotes = quotes_for_pks_in_order(list(state["shown_quote_ids"]))
-        if len(shown_quotes) != len(state["shown_quote_ids"]):
-            return HttpResponseBadRequest("quote missing")
-        ctx = {
-            "play_date": play_date,
-            "shown_quotes": shown_quotes,
-            "current_quote": shown_quotes[-1],
-            "wrong_count": state["wrong_count"],
-            "progress_row": format_progress_row(
-                wrong_count=state["wrong_count"], max_attempts=MAX_ATTEMPTS
-            ),
-            "guess_number": state["wrong_count"] + 1,
-            "max_attempts": MAX_ATTEMPTS,
-            "past_guesses": _past_guesses(state),
-            "warning_message": "You already guessed that episode.",
-        }
-        if request.htmx:
-            return render(request, "game/partials/daily_round.html", ctx)
-        return redirect("daily_play", play_date=play_date)
+    if outcome in (Outcome.WON, Outcome.LOST):
+        save_round(request.session, play_date, post_attempt)
+        # On a win, the guessed episode IS the answer episode — reuse it.
+        answer = guessed_episode if outcome is Outcome.WON else None
+        return _render_terminal(request, play_date, post_attempt, answer_episode=answer)
 
-    if outcome in ("won", "lost"):
-        save_round(request.session, play_date, new_state)
-        ctx = {
-            "play_date": play_date,
-            "won": outcome == "won",
-            "episode_title": _episode_title(int(new_state["answer_episode_id"])),
-            "share_text": _share_text(request, play_date, new_state["share_row"]),
-            "shown_quotes": quotes_for_pks_in_order(new_state["shown_quote_ids"]),
-            "past_guesses": _past_guesses(new_state),
-        }
-        if request.htmx:
-            return render(request, "game/partials/daily_complete.html", ctx)
-        return redirect("daily_play", play_date=play_date)
-
-    # outcome == "continue"
-    prev_last = state["shown_quote_ids"][-1]
-    next_pk = next_hint_quote_pk(
-        play_date,
-        int(new_state["answer_episode_id"]),
-        list(new_state["shown_quote_ids"]),
-    )
-    if next_pk is None:
-        next_pk = prev_last
-    new_state = advance_hint(new_state, next_pk)
-    repeat_hint = next_pk == prev_last
-    save_round(request.session, play_date, new_state)
-
-    if quote_by_pk(next_pk) is None:
-        return HttpResponseBadRequest("quote missing")
-
-    shown_quotes = quotes_for_pks_in_order(new_state["shown_quote_ids"])
-    if len(shown_quotes) != len(new_state["shown_quote_ids"]):
-        return HttpResponseBadRequest("quote missing")
-
-    ctx = {
-        "play_date": play_date,
-        "shown_quotes": shown_quotes,
-        "current_quote": shown_quotes[-1],
-        "wrong_count": new_state["wrong_count"],
-        "progress_row": format_progress_row(wrong_count=new_state["wrong_count"], max_attempts=MAX_ATTEMPTS),
-        "guess_number": new_state["wrong_count"] + 1,
-        "max_attempts": MAX_ATTEMPTS,
-        "repeat_hint": repeat_hint,
-        "past_guesses": _past_guesses(new_state),
-    }
-    if request.htmx:
-        return render(request, "game/partials/daily_round.html", ctx)
-    return redirect("daily_play", play_date=play_date)
+    post_hint, repeat_hint = _continue_after_attempt(post_attempt, play_date)
+    save_round(request.session, play_date, post_hint)
+    return _render_in_progress(request, play_date, post_hint, repeat_hint=repeat_hint)
 
 
 @require_GET
+@reject_future_play_date
 def episode_autocomplete(request, play_date):
-    early = _redirect_future_play_date_to_today(request, play_date)
-    if early is not None:
-        return early
-
     q = request.GET.get("q", "")
     pairs = episode_search_results(q, limit=20)
     return render(
         request,
-        "game/partials/episode_suggestions.html",
+        "game/partials/episode-suggestions.html",
         {"suggestions": pairs, "play_date": play_date},
     )

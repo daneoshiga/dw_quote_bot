@@ -1,0 +1,14 @@
+{% extends "game/base.html" %}
+{% block title %}Daily quote · {{ play_date }}{% endblock %}
+{% block body %}
+<h1 class="text-2xl font-bold mb-2">Daily quote</h1>
+<p class="text-sm text-[oklch(50%_0.02_240)] mb-4"><time datetime="{{ play_date|date:'c' }}">{{ play_date }}</time> · <a href="{% url 'today_redirect' %}">Go to today</a> ({{ game_timezone }})</p>
+{% if terminal %}
+<p class="text-sm text-[oklch(50%_0.02_240)] mb-2">This round is already finished — you {{ outcome }}.</p>
+{% include "game/partials/daily-complete.html" %}
+{% else %}
+<div id="daily-game-shell">
+{% include "game/partials/daily-round.html" %}
+</div>
+{% endif %}
+{% endblock %}

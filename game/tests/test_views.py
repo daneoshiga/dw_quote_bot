@@ -72,7 +72,9 @@ def test_daily_play_no_quotes_returns_503(client: Client):
 
 
 @pytest.mark.django_db
-def test_episode_autocomplete_short_query_returns_empty(client: Client, populated_quotes):
+def test_episode_autocomplete_short_query_returns_empty(
+    client: Client, populated_quotes
+):
     d = date(2016, 8, 8)
     r = client.get(f"/play/{d.isoformat()}/episodes/?q=Ep")
     assert r.status_code == 200
@@ -104,7 +106,7 @@ def test_answer_correct_htmx_and_session(client: Client, populated_quotes):
     assert "🟩" in htmx_body
     assert "⬛" in htmx_body
     assert f"Doctor Who Daily Quote #{play_date.isoformat()}" in htmx_body
-    assert f"http://testserver/play/{play_date.isoformat()}/" in htmx_body
+    assert ("http://testserver/play/" + play_date.isoformat() + "/") in htmx_body
 
     page = client.get(f"/play/{play_date.isoformat()}/")
     assert page.status_code == 200
@@ -112,7 +114,7 @@ def test_answer_correct_htmx_and_session(client: Client, populated_quotes):
     assert "already finished" in body.lower()
     assert "won" in body.lower()
     assert f"Doctor Who Daily Quote #{play_date.isoformat()}" in body
-    assert f"http://testserver/play/{play_date.isoformat()}/" in body
+    assert ("http://testserver/play/" + play_date.isoformat() + "/") in body
 
 
 @pytest.mark.django_db
@@ -181,7 +183,7 @@ def test_six_skips_ends_game_with_six_reds(client: Client, populated_quotes):
     assert final.count("🟥") == 6
     assert "🟩" not in final
     assert f"Doctor Who Daily Quote #{play_date.isoformat()}" in final
-    assert f"http://testserver/play/{play_date.isoformat()}/" in final
+    assert ("http://testserver/play/" + play_date.isoformat() + "/") in final
 
 
 @pytest.mark.django_db
@@ -199,7 +201,9 @@ def test_answer_rejects_empty_episode_without_skip(client: Client, populated_quo
 
 
 @pytest.mark.django_db
-def test_skip_with_correct_episode_id_still_counts_as_wrong(client: Client, populated_quotes):
+def test_skip_with_correct_episode_id_still_counts_as_wrong(
+    client: Client, populated_quotes
+):
     play_date = date(2016, 8, 8)
     assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
     quote = quote_for_play_date(play_date)
@@ -229,7 +233,10 @@ def test_six_wrong_ends_game_with_six_reds(client: Client, populated_quotes):
     quote_id = quote.pk
     for attempt in range(6):
         if attempt < len(wrong_eps):
-            payload = {"quote_id": str(quote_id), "episode_id": str(wrong_eps[attempt].pk)}
+            payload = {
+                "quote_id": str(quote_id),
+                "episode_id": str(wrong_eps[attempt].pk),
+            }
         else:
             payload = {"quote_id": str(quote_id), "skip": "1"}
         r = client.post(
@@ -345,7 +352,9 @@ def test_skip_shows_visible_past_guess_history(client: Client, populated_quotes)
 
 
 @pytest.mark.django_db
-def test_terminal_screen_shows_full_past_guess_history(client: Client, populated_quotes):
+def test_terminal_screen_shows_full_past_guess_history(
+    client: Client, populated_quotes
+):
     play_date = date(2014, 8, 8)
     assert client.get(f"/play/{play_date.isoformat()}/").status_code == 200
     quote = quote_for_play_date(play_date)

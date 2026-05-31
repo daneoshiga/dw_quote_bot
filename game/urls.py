@@ -1,7 +1,7 @@
 from django.urls import path, register_converter
 
-from game.converters import GameDateConverter
 from game import views
+from game.converters import GameDateConverter
 
 register_converter(GameDateConverter, "gdate")
 

@@ -12,7 +12,11 @@
       "Bash(uv run:*)",
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
       "Bash(rtk find *)",
-      "Bash(rtk ls *)"
+      "Bash(rtk ls *)",
+      "Bash(/usr/bin/git diff *)",
+      "Bash(tee /tmp/x.diff)",
+      "Bash(/usr/bin/git --no-pager diff HEAD -- game/services.py game/views.py game/round_session.py)",
+      "Bash(/usr/bin/git status *)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import random
+from collections.abc import Callable
 from datetime import date
 
 
@@ -34,23 +35,19 @@ def quote_pk_for_day(play_date: date, max_pk: int, game_seed: str = "") -> int:
     """Pick a candidate primary key in [1, max_pk] for this day (may need gap retry elsewhere)."""
     if max_pk < 1:
         raise ValueError("max_pk must be at least 1")
-    rng = rng_for_date(play_date, f"{game_seed}:quote")
+    rng = rng_for_date(play_date, game_seed + ":quote")
     return rng.randint(1, max_pk)
 
 
 def resolve_quote_pk(
     play_date: date,
     max_pk: int,
-    exists,
+    exists: Callable[[int], bool],
     game_seed: str = "",
     max_attempts: int = 64,
 ) -> int:
-    """
-    Deterministic quote pk: try successive random draws until exists(pk).
-
-    exists: callable taking int -> bool
-    """
-    rng = rng_for_date(play_date, f"{game_seed}:quote")
+    """Deterministic quote pk: try successive random draws until exists(pk)."""
+    rng = rng_for_date(play_date, game_seed + ":quote")
     for _ in range(max_attempts):
         pk = rng.randint(1, max_pk)
         if exists(pk):

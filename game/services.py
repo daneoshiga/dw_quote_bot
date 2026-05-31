@@ -27,6 +27,10 @@ def quote_for_play_date(play_date: date) -> Quote:
     return Quote.objects.select_related("episode").get(pk=pk)
 
 
+def episode_by_pk(pk: int) -> Episode | None:
+    return Episode.objects.filter(pk=pk).only("title", "airdate").first()
+
+
 def episode_choice_label(ep: Episode) -> str:
     title = (ep.title or "").strip()
     air = (ep.airdate or "").strip()
@@ -66,14 +70,10 @@ def next_hint_quote_pk(
     """
     hint_attempt = len(shown_quote_ids)
     game_seed = settings.GAME_SEED
-    rng = rng_for_date(play_date, f"{game_seed}:hint:{hint_attempt}")
+    rng = rng_for_date(play_date, game_seed + ":hint:" + str(hint_attempt))
     candidates = quote_pks_for_episode(episode_id)
     shown = set(shown_quote_ids)
     return pick_next_quote_pk(candidates, shown, rng)
-
-
-def quote_by_pk(pk: int) -> Quote | None:
-    return Quote.objects.select_related("episode").filter(pk=pk).first()
 
 
 def quotes_for_pks_in_order(pks: list[int]) -> list[Quote]:

@@ -5,30 +5,56 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Episode',
+            name="Episode",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=512)),
-                ('airdate', models.CharField(blank=True, default='', max_length=128)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=512)),
+                ("airdate", models.CharField(blank=True, default="", max_length=128)),
             ],
             options={
-                'constraints': [models.UniqueConstraint(fields=('title', 'airdate'), name='game_episode_title_airdate_uniq')],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("title", "airdate"),
+                        name="game_episode_title_airdate_uniq",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Quote',
+            name="Quote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('episode', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quotes', to='game.episode')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                (
+                    "episode",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quotes",
+                        to="game.episode",
+                    ),
+                ),
             ],
         ),
     ]

@@ -14,8 +14,8 @@
 {% endfor %}
 </ol>
 {% endif %}
-<div class="dw-banner {% if won %}dw-banner-ok{% else %}dw-banner-no{% endif %}">
-{% if won %}
+<div class="dw-banner {% if outcome == 'won' %}dw-banner-ok{% else %}dw-banner-no{% endif %}">
+{% if outcome == 'won' %}
 <p>Correct. The episode is <strong>{{ episode_title }}</strong>.</p>
 {% else %}
 <p>Out of guesses. The episode was <strong>{{ episode_title }}</strong>.</p>
